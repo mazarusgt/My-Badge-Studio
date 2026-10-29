@@ -1,1 +1,1 @@
-# My-Badge-Studio_Cursor
+# My-Badge-Studio
