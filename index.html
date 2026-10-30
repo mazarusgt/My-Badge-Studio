@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>My Badge Studio — ออกแบบและจัดพิมพ์</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ccircle cx=%2750%27 cy=%2750%27 r=%2742%27 fill=%27%2390b2ff%27/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="logo">◉</span>
+        <div>
+          <strong>My Badge Studio</strong
+          ><small>ออกแบบง่าย • ขนาดจริง • พร้อมพิมพ์</small>
+        </div>
+      </div>
+      <nav aria-label="โปรเจกต์">
+        <button id="library">เทมเพลต</button
+        ><button id="save">บันทึกไฟล์</button><button id="open">เปิดไฟล์</button
+        ><button id="account">บัญชี / เซิร์ฟเวอร์</button
+        ><button id="export" class="primary">ส่งออก / พิมพ์</button>
+      </nav>
+      <input
+        hidden
+        id="projectFile"
+        type="file"
+        accept=".json,application/json"
+      />
+    </header>
+    <div class="projectbar">
+      <label
+        >ชื่อโปรเจกต์
+        <input id="projectName" maxlength="200" value="โปรเจกต์ใหม่" /></label
+      ><label
+        >หน่วยหลัก
+        <select id="unit">
+          <option>mm</option>
+          <option>cm</option>
+          <option>inch</option>
+        </select></label
+      ><button id="undo" title="Ctrl/Cmd+Z">↶ ย้อนกลับ</button
+      ><button id="redo" title="Ctrl/Cmd+Shift+Z">↷ ทำซ้ำ</button
+      ><span id="saveStatus" class="muted" role="status"></span
+      ><button id="help">วิธีใช้</button>
+    </div>
+    <main>
+      <aside aria-label="ตั้งค่างาน">
+        <h2>1. ชิ้นงาน</h2>
+        <p id="selection" class="selection"></p>
+        <label
+          >ประเภท<select id="type">
+            <option value="round">เข็มกลัดทรงกลม</option>
+            <option value="square">แม่เหล็กสี่เหลี่ยมจัตุรัส</option>
+            <option value="sticker">สติกเกอร์วงกลม</option>
+          </select></label
+        ><label>ขนาดเริ่มต้น<select id="preset"></select></label
+        ><label
+          >ขนาดหน้าชิ้นงาน<input
+            id="face"
+            data-dim
+            type="number"
+            step="any" /></label
+        ><label
+          >ขนาดตัดรอบนอก<input id="outer" data-dim type="number" step="any"
+        /></label>
+        <p class="hint">
+          ขนาดตัดต้องตรงกับแม่พิมพ์จริง ค่าที่ให้เป็นจุดเริ่มต้น
+          กรุณาตรวจสเปกเครื่องก่อนผลิต
+        </p>
+        <label
+          >ระยะปลอดภัยจากขอบหน้า<input
+            id="safe"
+            data-dim
+            type="number"
+            step="any" /></label
+        ><label
+          >หมายเหตุ/รายละเอียด<textarea id="notes" rows="2"></textarea>
+        </label>
+        <div class="pair">
+          <button id="addItem">＋ เพิ่มชิ้นงาน</button
+          ><button id="duplicateItem">ทำสำเนาชิ้น</button>
+        </div>
+        <button id="deleteItem" class="danger">ลบชิ้นที่เลือก</button>
+        <details open>
+          <summary>2. กระดาษและการจัดวาง</summary>
+          <label
+            >กระดาษ<select id="paper">
+              <option value="210,297">A4</option>
+              <option value="297,420">A3</option>
+              <option value="329,483">A3+</option>
+              <option value="215.9,279.4">US Letter</option>
+              <option value="custom">กำหนดเอง</option>
+            </select></label
+          >
+          <div class="pair">
+            <label
+              >กว้าง<input
+                id="width"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >สูง<input id="height" data-dim type="number" step="any"
+            /></label>
+          </div>
+          <button id="rotate">สลับแนวกระดาษ</button>
+          <div class="pair">
+            <label
+              >ขอบบน<input id="top" data-dim type="number" step="any" /></label
+            ><label
+              >ขอบล่าง<input
+                id="bottom"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >ขอบซ้าย<input
+                id="left"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >ขอบขวา<input
+                id="right"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >ห่างแนวนอน<input
+                id="gapX"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >ห่างแนวตั้ง<input
+                id="gapY"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >คอลัมน์ (0 = อัตโนมัติ)<input
+                id="cols"
+                type="number"
+                min="0"
+                step="1" /></label
+            ><label
+              >แถว (0 = อัตโนมัติ)<input
+                id="rows"
+                type="number"
+                min="0"
+                step="1"
+            /></label>
+          </div>
+          <button id="fillGrid" class="wide">จัดเต็มหน้าตามชิ้นที่เลือก</button
+          ><button id="pack" class="wide">จัดเรียงชิ้นที่มี / ผสมขนาด</button
+          ><button id="saveLayout">บันทึกเลย์เอาต์</button
+          ><label
+            >เลย์เอาต์ที่บันทึก<select id="layouts">
+              <option value="">เลือกเลย์เอาต์</option>
+            </select></label
+          ><label
+            >นำไปใช้กับ<select id="layoutTarget">
+              <option value="current">หน้าปัจจุบัน</option>
+              <option value="new">หน้าใหม่</option>
+            </select></label
+          ><button id="loadLayout">โหลดเลย์เอาต์</button>
+        </details>
+        <details>
+          <summary>3. เส้นและเครื่องหมาย</summary>
+          <label
+            >เลือกประเภทเส้น<select id="styleTarget">
+              <option value="cut">เส้นตัด</option>
+              <option value="face">เส้นหน้าชิ้นงาน</option>
+              <option value="safe">เส้นพื้นที่ปลอดภัย</option>
+              <option value="marks">เครื่องหมายช่วยผลิต</option>
+            </select></label
+          ><label>สีเส้น<input id="lineColor" type="color" /></label
+          ><label
+            >ความหนาเส้น<input
+              id="lineWidth"
+              data-dim
+              type="number"
+              step="any" /></label
+          ><label
+            >ความทึบ (0–1)<input
+              id="lineOpacity"
+              type="number"
+              step="0.1"
+              min="0"
+              max="1" /></label
+          ><label
+            >รูปแบบ<select id="lineDash">
+              <option value="">เส้นทึบ</option>
+              <option value="2 1">เส้นประ</option>
+              <option value="0.3 1">เส้นจุด</option>
+            </select></label
+          ><label
+            >ขนาดเครื่องหมาย<input
+              id="markSize"
+              data-dim
+              type="number"
+              step="any" /></label
+          ><label
+            >ระยะเครื่องหมายจากขอบชิ้น<input
+              id="markOffset"
+              data-dim
+              type="number"
+              step="any" /></label
+          ><label class="check"
+            ><input id="linePreview" type="checkbox" /> แสดงในพรีวิว</label
+          ><label class="check"
+            ><input id="lineExport" type="checkbox" /> รวมในไฟล์ส่งออก</label
+          ><label class="check"
+            ><input id="cropMarks" type="checkbox" /> เครื่องหมายช่วยตัด</label
+          ><label class="check"
+            ><input id="registration" type="checkbox" />
+            กากบาทจัดตำแหน่งทั่วไป</label
+          >
+          <p class="hint">
+            กากบาททั่วไปไม่ใช่มาร์กเฉพาะ Cricut/Silhouette
+            ต้องตั้งค่าและทดสอบในซอฟต์แวร์เครื่องตัดก่อนใช้จริง
+          </p>
+        </details>
+      </aside>
+      <section class="workspace" aria-label="พื้นที่ออกแบบ">
+        <div class="toolbar">
+          <button id="prevPage" aria-label="หน้าก่อนหน้า">←</button
+          ><label>หน้า<select id="pageSelect"></select></label
+          ><button id="nextPage" aria-label="หน้าถัดไป">→</button
+          ><button id="addPage">＋ หน้า</button
+          ><button id="duplicatePage">สำเนาหน้า</button
+          ><button id="deletePage">ลบหน้า</button
+          ><label
+            >ซูม<select id="zoom">
+              <option value="fit">พอดีหน้า</option>
+              <option value="0.5">50%</option>
+              <option value="1">100%</option>
+              <option value="1.5">150%</option>
+              <option value="2">200%</option>
+            </select></label
+          ><label class="check"
+            ><input id="moveMode" type="checkbox" /> ลากย้ายชิ้นงาน</label
+          >
+        </div>
+        <div id="status" role="status" aria-live="polite"></div>
+        <div class="canvas" id="canvas">
+          <div id="sheetWrap"><div id="sheet"></div></div>
+        </div>
+        <footer>
+          <span id="count"></span
+          ><span>ขนาดบนจอขึ้นกับอุปกรณ์ • งานพิมพ์ใช้ 100%</span>
+        </footer>
+      </section>
+      <aside aria-label="ออกแบบชิ้นที่เลือก">
+        <h2>4. รูปและข้อความ</h2>
+        <p class="hint">คลิกชิ้นงานบนกระดาษเพื่อเลือก ลากรูปมาวางได้</p>
+        <label
+          >เพิ่มรูป (เลือกหลายไฟล์ได้)<input
+            id="image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            multiple /></label
+        ><button id="clearImage">ล้างรูปชิ้นนี้</button
+        ><label
+          >รูปแบบภาพ<select id="imageFit">
+            <option value="cover">เต็มพื้นที่ / ครอบส่วนเกิน</option>
+            <option value="contain">เห็นภาพทั้งหมด</option>
+          </select></label
+        ><label
+          >ขยายภาพ (%)<input
+            id="imageScale"
+            type="number"
+            min="1"
+            max="2000"
+            step="1"
+        /></label>
+        <div class="pair">
+          <label
+            >เลื่อนรูป X<input
+              id="imageX"
+              data-dim
+              type="number"
+              step="any" /></label
+          ><label
+            >เลื่อนรูป Y<input id="imageY" data-dim type="number" step="any"
+          /></label>
+        </div>
+        <label
+          >หมุนรูป (องศา)<input
+            id="imageRotation"
+            type="number"
+            step="any" /></label
+        ><label>สีพื้นหลัง<input id="background" type="color" /></label
+        ><label
+          >สีพื้นหลัง HEX / RGB<input id="backgroundHex" maxlength="32"
+        /></label>
+        <p id="imageQuality" class="hint"></p>
+        <details open>
+          <summary>ข้อความหลายเลเยอร์</summary>
+          <label>เลเยอร์ข้อความ<select id="textLayer"></select></label>
+          <div class="pair">
+            <button id="addText">＋ ข้อความ</button
+            ><button id="deleteText">ลบเลเยอร์</button>
+          </div>
+          <label
+            >ข้อความ<textarea
+              id="caption"
+              rows="3"
+              placeholder="พิมพ์ข้อความ หรือ {{name}} สำหรับ CSV"
+            ></textarea></label
+          ><label
+            >แบบอักษร<select id="font">
+              <option value="sans">อ่านง่าย</option>
+              <option value="serif">มีเชิง</option>
+              <option value="hand">ตัวอักษรมีหัว</option>
+            </select></label
+          ><label
+            >น้ำหนัก<select id="weight">
+              <option value="normal">ปกติ</option>
+              <option value="bold">หนา</option>
+            </select></label
+          ><label
+            >ขนาดตัวอักษร<input id="textSize" data-dim type="number" step="any"
+          /></label>
+          <div class="pair">
+            <label
+              >ตำแหน่ง X<input
+                id="textX"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >ตำแหน่ง Y<input id="textY" data-dim type="number" step="any"
+            /></label>
+          </div>
+          <label
+            >หมุนข้อความ (องศา)<input
+              id="textRotation"
+              type="number"
+              step="any" /></label
+          ><label>สีข้อความ<input id="textColor" type="color" /></label
+          ><label
+            >สีข้อความ HEX / RGB<input id="textHex" maxlength="32" /></label
+          ><button id="textFront">ย้ายเลเยอร์มาด้านหน้า</button>
+        </details>
+        <details>
+          <summary>ตำแหน่งชิ้นงานบนกระดาษ</summary>
+          <div class="pair">
+            <label
+              >X จากซ้าย<input
+                id="itemX"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >Y จากบน<input id="itemY" data-dim type="number" step="any"
+            /></label>
+          </div>
+        </details>
+        <button id="applyAll" class="wide">ใช้ดีไซน์กับทุกชิ้นในหน้านี้</button
+        ><button id="bulk" class="wide">ใส่ข้อมูลจำนวนมาก (CSV)</button
+        ><button id="saveTemplate" class="wide">
+          บันทึกเป็นเทมเพลตส่วนตัว
+        </button>
+      </aside>
+    </main>
+    <dialog id="exportDialog">
+      <form method="dialog" class="dialoghead">
+        <h2>ส่งออกและพิมพ์</h2>
+        <button aria-label="ปิด">✕</button>
+      </form>
+      <label
+        >รูปแบบ<select id="exportFormat">
+          <option value="pdf">PDF หลายหน้า / ขนาดจริง</option>
+          <option value="svg">SVG พร้อมภาพต้นฉบับ</option>
+          <option value="png">PNG</option>
+          <option value="dxf">DXF เส้นตัด (mm)</option>
+          <option value="print">พิมพ์โดยตรง</option>
+        </select></label
+      ><label
+        >หน้าที่ต้องการ<select id="exportPages">
+          <option value="current">หน้าปัจจุบัน</option>
+          <option value="all">ทุกหน้า</option>
+          <option value="range">ระบุช่วงหน้า</option>
+        </select></label
+      ><label>ช่วงหน้า<input id="pageRange" placeholder="เช่น 1,3-5" /></label>
+      <div class="pair">
+        <label
+          >DPI สำหรับ PNG<input
+            id="dpi"
+            type="number"
+            min="72"
+            max="1200"
+            value="300" /></label
+        ><label class="check"
+          ><input id="transparent" type="checkbox" checked /> PNG
+          พื้นโปร่งใส</label
+        >
+      </div>
+      <label class="check"
+        ><input id="exportArt" type="checkbox" checked /> ภาพ พื้นหลัง
+        และข้อความ</label
+      ><label class="check"
+        ><input id="exportLines" type="checkbox" checked />
+        เส้นที่ตั้งค่าให้ส่งออก</label
+      ><label class="check"
+        ><input id="exportMarks" type="checkbox" checked />
+        เครื่องหมายที่ตั้งค่าให้ส่งออก</label
+      >
+      <p class="hint">
+        SVG / PNG / DXF หลายหน้าจะรวมเป็น ZIP • PDF คงขนาดแต่ละหน้า<br />PNG
+        เป็นภาพพิกเซลตาม DPI ที่เลือก
+        ไม่สามารถเพิ่มรายละเอียดจากภาพต้นฉบับได้<br />พิมพ์ที่ Actual size /
+        100% ปิด Fit to page และวัดงานทดสอบก่อนผลิต
+      </p>
+      <p id="exportStatus" role="status"></p>
+      <button id="doExport" class="primary wide">สร้างไฟล์ / พิมพ์</button>
+    </dialog>
+    <dialog id="libraryDialog">
+      <form method="dialog" class="dialoghead">
+        <h2>เทมเพลตและดีไซน์</h2>
+        <button aria-label="ปิด">✕</button>
+      </form>
+      <p>
+        เลือกขนาดเพื่อเริ่มโปรเจกต์ใหม่ หรือเลือกดีไซน์ใช้กับชิ้นงานปัจจุบัน
+      </p>
+      <div id="readyTemplates" class="cards"></div>
+      <h3>เทมเพลตส่วนตัว</h3>
+      <div id="customTemplates" class="cards"></div>
+    </dialog>
+    <dialog id="bulkDialog">
+      <form method="dialog" class="dialoghead">
+        <h2>เพิ่มข้อมูลจาก CSV</h2>
+        <button aria-label="ปิด">✕</button>
+      </form>
+      <p>
+        ใส่ตัวแปร เช่น {{name}} ในเลเยอร์ข้อความก่อนนำเข้า
+        แต่ละแถวจะสร้างหนึ่งชิ้น และเพิ่มหน้าตามความจำเป็น
+      </p>
+      <p class="hint">
+        คอลัมน์ image ใช้ชื่อไฟล์รูปที่อัปโหลดไว้แล้ว (รวมส่วนขยาย)
+        ไม่มีการดาวน์โหลดภาพจากลิงก์ภายนอก
+      </p>
+      <label
+        >ไฟล์ CSV (UTF-8)<input
+          id="csvFile"
+          type="file"
+          accept=".csv,text/csv" /></label
+      ><label
+        >หรือวางข้อมูล<textarea
+          id="csvText"
+          rows="7"
+          placeholder="name,title&#10;สมชาย,ทีมงาน&#10;สมหญิง,ผู้จัดงาน"
+        ></textarea></label
+      ><button id="downloadCSV">ดาวน์โหลดตัวอย่าง CSV</button
+      ><button id="applyBulk" class="primary">สร้างงานจากข้อมูล</button>
+    </dialog>
+    <dialog id="accountDialog">
+      <form method="dialog" class="dialoghead">
+        <h2>บัญชีและโปรเจกต์บนเซิร์ฟเวอร์</h2>
+        <button aria-label="ปิด">✕</button>
+      </form>
+      <p id="accountState"></p>
+      <div id="authForm">
+        <label
+          >ชื่อบัญชี<input
+            id="username"
+            autocomplete="username"
+            minlength="3"
+            maxlength="40" /></label
+        ><label
+          >รหัสผ่าน (อย่างน้อย 10 ตัว)<input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            minlength="10"
+            maxlength="200" /></label
+        ><button id="login">เข้าสู่ระบบ</button
+        ><button id="register">สร้างบัญชี</button>
+      </div>
+      <div id="signedIn" hidden>
+        <button id="serverSave" class="primary">
+          บันทึกโปรเจกต์นี้บนเซิร์ฟเวอร์</button
+        ><button id="serverSaveAs">บันทึกเป็นโปรเจกต์ใหม่</button
+        ><button id="logout">ออกจากระบบ</button>
+        <div id="serverProjects"></div>
+      </div>
+      <p id="accountStatus" role="status"></p>
+      <p class="hint">
+        ข้อมูลอยู่บนเซิร์ฟเวอร์ที่เปิดแอปนี้ การเปิดออนไลน์ต้องใช้ HTTPS
+        และพื้นที่เก็บข้อมูลถาวร ไฟล์ JSON เป็นสำเนาสำรองที่คุณเก็บเองได้
+      </p>
+    </dialog>
+    <dialog id="helpDialog">
+      <form method="dialog" class="dialoghead">
+        <h2>เริ่มใช้งาน</h2>
+        <button aria-label="ปิด">✕</button>
+      </form>
+      <ol>
+        <li>เลือกชนิด ขนาดหน้า และขนาดตัดให้ตรงแม่พิมพ์</li>
+        <li>เลือกกระดาษและจัดเต็มหน้า หรือเพิ่มชิ้นงานหลายขนาดแล้วจัดเรียง</li>
+        <li>คลิกแต่ละชิ้นเพื่อใส่รูปและข้อความ เพิ่มข้อความได้หลายเลเยอร์</li>
+        <li>เพิ่มหน้า บันทึกเลย์เอาต์ หรือใส่ข้อมูล CSV สำหรับงานจำนวนมาก</li>
+        <li>ตรวจคำเตือน แล้วส่งออกหรือพิมพ์ที่ 100%</li>
+      </ol>
+      <p>
+        โปรเจกต์บันทึกอัตโนมัติในเบราว์เซอร์นี้ ควรดาวน์โหลดไฟล์ JSON
+        สำรองก่อนล้างข้อมูลเบราว์เซอร์
+      </p>
+      <p>
+        เส้นน้ำเงิน = หน้าชิ้นงาน • เส้นเขียว = พื้นที่ปลอดภัย • เส้นเทา =
+        ขอบตัด
+      </p>
+      <p>Ctrl/Cmd+Z ย้อนกลับ • Ctrl/Cmd+Shift+Z ทำซ้ำ</p>
+    </dialog>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,497 @@
+@font-face {
+  font-family: StudioThai;
+  src: url("/assets/fonts/sans.ttf");
+}
+@font-face {
+  font-family: StudioLatin;
+  src: url("/assets/fonts/latin.ttf");
+}
+:root {
+  color-scheme: dark;
+  font-family: StudioThai, StudioLatin, system-ui, sans-serif;
+  background: #10141d;
+  color: #eaf0fa;
+  font-size: 16px;
+  --border: #3b485d;
+  --muted: #b4c1d5;
+  --panel: #1a2230;
+  --accent: #90b2ff;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header {
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: #161e2b;
+}
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+}
+.logo {
+  font-size: 40px;
+  color: #a9bcff;
+}
+strong {
+  font-size: 23px;
+}
+small {
+  display: block;
+  color: var(--muted);
+  margin-top: 3px;
+}
+nav,
+.toolbar,
+.projectbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.projectbar {
+  padding: 10px 24px;
+  background: #1b2535;
+  border-bottom: 1px solid var(--border);
+}
+.projectbar label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+.projectbar input {
+  width: 210px;
+}
+.projectbar select {
+  width: 85px;
+}
+button {
+  padding: 10px 13px;
+  border: 1px solid #536580;
+  background: #29364b;
+  border-radius: 8px;
+  color: #f6f8ff;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s;
+}
+button:hover {
+  background: #3b4d68;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.primary {
+  background: #4165cc;
+  border-color: #7d9aed;
+  font-weight: bold;
+}
+.danger {
+  color: #ffc7c7;
+}
+.muted,
+.hint {
+  color: var(--muted);
+}
+.hint {
+  font-size: 13px;
+  line-height: 1.75;
+  margin: 10px 0;
+}
+main {
+  display: grid;
+  grid-template-columns: 285px minmax(320px, 1fr) 300px;
+  height: calc(100dvh - 171px);
+  min-height: 500px;
+}
+aside {
+  background: var(--panel);
+  padding: 20px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+aside:first-child {
+  border-right: 1px solid var(--border);
+}
+aside:last-child {
+  border-left: 1px solid var(--border);
+}
+h2 {
+  font-size: 19px;
+  margin: 0 0 16px;
+}
+h3 {
+  font-size: 17px;
+}
+.selection {
+  padding: 8px 10px;
+  background: #24344d;
+  border-radius: 6px;
+  color: #c6d8ff;
+  font-size: 14px;
+}
+label {
+  display: block;
+  margin: 12px 0;
+  color: #d4deee;
+  font-size: 14px;
+}
+input:not([type="checkbox"]),
+select,
+textarea {
+  display: block;
+  width: 100%;
+  padding: 9px;
+  margin-top: 5px;
+  background: #111925;
+  border: 1px solid #4a5b75;
+  border-radius: 7px;
+  color: #f1f5fb;
+  font: inherit;
+  min-height: 43px;
+}
+textarea {
+  resize: vertical;
+}
+input[type="color"] {
+  padding: 3px;
+  cursor: pointer;
+}
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #8aabff;
+  flex-shrink: 0;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.pair label {
+  min-width: 0;
+}
+.dimension {
+  display: flex;
+  gap: 4px;
+}
+.dimension input {
+  min-width: 0;
+}
+.dimension select {
+  width: 66px;
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 4px;
+}
+.wide {
+  width: 100%;
+  margin: 6px 0;
+}
+summary {
+  cursor: pointer;
+  padding: 15px 0;
+  font-weight: bold;
+}
+details {
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+}
+.workspace {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111721;
+}
+.toolbar {
+  padding: 12px;
+  background: #202c3e;
+  gap: 6px;
+}
+.toolbar label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toolbar select {
+  width: auto;
+  max-width: 110px;
+  margin: 0;
+}
+.toolbar button {
+  padding: 8px;
+  font-size: 14px;
+}
+#status {
+  padding: 12px 18px;
+  color: #c3d1e6;
+  font-size: 14px;
+  line-height: 1.7;
+  border-bottom: 1px solid #29374a;
+}
+#status.warning {
+  background: #402d1a;
+  color: #ffe1aa;
+}
+.canvas {
+  overflow: auto;
+  flex: 1;
+  padding: 25px;
+  background: radial-gradient(#334056 1px, transparent 1px) 0 0/18px 18px;
+  min-height: 300px;
+}
+#sheetWrap {
+  margin: auto;
+  position: relative;
+}
+#sheet {
+  transform-origin: top left;
+  width: max-content;
+  box-shadow: 0 8px 40px #0008;
+  background: #fff;
+}
+#sheet svg {
+  display: block;
+  touch-action: none;
+}
+#sheet [data-slot] {
+  cursor: pointer;
+}
+#sheet [data-slot]:focus {
+  outline: none;
+  filter: drop-shadow(0 0 1px #355aee);
+}
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 14px;
+  background: #202c3e;
+  color: var(--muted);
+  font-size: 12px;
+}
+dialog {
+  background: #1b2535;
+  color: #eaf0fa;
+  border: 1px solid #627493;
+  border-radius: 14px;
+  max-width: 680px;
+  width: calc(100% - 32px);
+  max-height: 90dvh;
+  padding: 24px;
+  box-shadow: 0 24px 100px #0009;
+}
+dialog::backdrop {
+  background: #000a;
+  backdrop-filter: blur(4px);
+}
+.dialoghead {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+}
+.dialoghead h2 {
+  margin: 0;
+}
+.dialoghead button {
+  min-width: 44px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.card {
+  border: 1px solid #4b5e7a;
+  border-radius: 9px;
+  padding: 15px;
+  background: #222f43;
+}
+.card p {
+  font-size: 13px;
+  color: #c2cfe3;
+}
+.card button {
+  margin: 3px;
+}
+#serverProjects .card {
+  margin-top: 10px;
+}
+#exportStatus,
+#accountStatus {
+  color: #ffdd98;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #adc9ff;
+  outline-offset: 2px;
+}
+[hidden] {
+  display: none !important;
+}
+li {
+  margin: 14px 0;
+  line-height: 1.8;
+}
+@media (max-width: 1150px) {
+  header {
+    flex-wrap: wrap;
+  }
+  main {
+    height: calc(100dvh - 230px);
+    grid-template-columns: 250px minmax(300px, 1fr) 260px;
+  }
+  aside {
+    padding: 14px;
+  }
+  .dimension select {
+    width: 58px;
+  }
+}
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 240px minmax(280px, 1fr);
+    height: auto;
+  }
+  .workspace {
+    height: 85dvh;
+  }
+  aside:last-child {
+    grid-column: 1/-1;
+    overflow: visible;
+    columns: 2;
+    column-gap: 30px;
+  }
+  aside:last-child > * {
+    break-inside: avoid;
+  }
+  aside:first-child {
+    max-height: 85dvh;
+  }
+  header {
+    padding: 14px;
+  }
+  .projectbar {
+    padding: 10px;
+  }
+  footer {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 600px) {
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace {
+    order: -1;
+    height: 70dvh;
+    min-height: 450px;
+  }
+  aside:first-child {
+    max-height: none;
+  }
+  aside:last-child {
+    columns: 1;
+  }
+  nav {
+    width: 100%;
+  }
+  nav button {
+    flex-grow: 1;
+  }
+  .projectbar {
+    gap: 8px;
+  }
+  .projectbar input {
+    width: 160px;
+  }
+  .projectbar label {
+    font-size: 13px;
+  }
+  strong {
+    font-size: 21px;
+  }
+  .canvas {
+    padding: 16px;
+  }
+  .pair {
+    gap: 12px;
+  }
+}
+@media print {
+  body > * {
+    display: none !important;
+  }
+  body > #printSheet {
+    display: block !important;
+    background: #fff;
+  }
+  #printSheet section {
+    page-break-after: always;
+    break-after: page;
+  }
+  #printSheet section:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  #printSheet svg {
+    display: block;
+  }
+}
+main {
+  grid-template-rows: minmax(0, 1fr);
+}
+.workspace,
+main > aside {
+  min-height: 0;
+}
+.pair .dimension {
+  flex-wrap: wrap;
+}
+.pair .dimension input {
+  flex-basis: 100%;
+  width: 100%;
+}
+.pair .dimension select {
+  width: 100%;
+  min-height: 32px;
+  margin-top: 0;
+}
+.projectbar .muted {
+  font-size: 13px;
+}
+#saveStatus {
+  max-width: 280px;
+}
+@media (max-width: 900px) {
+  main {
+    grid-template-rows: auto auto;
+  }
+}
+.projectbar > label {
+  white-space: nowrap;
+}
