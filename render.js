@@ -29,6 +29,7 @@ export function renderPage(
   {
     production = false,
     selected = -1,
+    selectedIds = null,
     art = true,
     lines = true,
     marks = true,
@@ -60,7 +61,7 @@ export function renderPage(
   for (let i = 0; i < page.items.length; i++) {
     const a = page.items[i],
       d = a.outer;
-    out += `<g data-slot="${i}" transform="translate(${a.x} ${a.y})" tabindex="${production ? -1 : 0}" role="button" aria-label="ชิ้นที่ ${i + 1}">`;
+    out += `<g data-slot="${i}" transform="translate(${a.x} ${a.y})" tabindex="${production ? -1 : 0}" role="button" ${production ? "" : `aria-pressed="${selectedIds ? selectedIds.includes(a.id) : selected === i}"`} aria-label="ชิ้นที่ ${i + 1}">`;
     if (art) {
       out +=
         shape(a, d, `fill="${a.background}"`) +
@@ -100,8 +101,13 @@ export function renderPage(
       ])
         if (shown(k) && size > 0)
           out += shape(a, size, attrs(project.styles[k]));
-    if (!production && selected === i)
-      out += shape(a, d, 'fill="none" stroke="#5b80ff" stroke-width="0.7"');
+    if (
+      !production &&
+      (selectedIds ? selectedIds.includes(a.id) : selected === i)
+    )
+      out +=
+        shape(a, d, 'fill="none" stroke="#5b21b6" stroke-width="2.4"') +
+        shape(a, d, 'fill="none" stroke="#e9caff" stroke-width="1.2"');
     if (marks && shown("marks") && project.cropMarks) {
       const s = project.styles.marks,
         o = s.offset,

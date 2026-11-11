@@ -1,3 +1,4 @@
+import { reveal } from "./editor-helpers.mjs";
 import { chromium } from "playwright-core";
 import http from "node:http";
 import path from "node:path";
@@ -28,6 +29,7 @@ const check = (name, passed) => {
   console.log("PASS", name);
 };
 const change = async (id, value) => {
+  await reveal(page, id);
   await page.locator("#" + id).fill(value);
   await page.locator("#" + id).dispatchEvent("change");
 };
@@ -50,8 +52,12 @@ try {
     "server account clearly disabled",
     await page.locator("#account").isDisabled(),
   );
+  await reveal(page, "preset");
   await page.selectOption("#preset", "73");
+  await page.locator('.workspace-nav a[href="#paperSettings"]').click();
+  await reveal(page, "fillGrid");
   await page.click("#fillGrid");
+  await reveal(page, "addText");
   await page.click("#addText");
   await change("caption", "เปิดไฟล์เดียวได้");
   check(
@@ -68,6 +74,7 @@ try {
     c.getContext("2d").fillRect(0, 0, 800, 600);
     return c.toDataURL().split(",")[1];
   });
+  await reveal(page, "image");
   await page.setInputFiles("#image", {
     name: "portable.png",
     mimeType: "image/png",
@@ -80,17 +87,24 @@ try {
     "image import works without server",
     (await page.locator("#imageQuality").textContent()).includes("800 × 600"),
   );
+  await reveal(page, "saveLayout");
   await page.click("#saveLayout");
+  await reveal(page, "layouts");
   await page.selectOption("#layouts", "0");
+  await reveal(page, "layoutTarget");
   await page.selectOption("#layoutTarget", "new");
+  await reveal(page, "loadLayout");
   await page.click("#loadLayout");
   check(
     "layouts work while offline",
     (await page.locator("#pageSelect option").count()) === 2,
   );
+  await reveal(page, "export");
   await page.click("#export");
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "svg");
   const event = page.waitForEvent("download");
+  await reveal(page, "doExport");
   await page.click("#doExport");
   const download = await event;
   await fs.mkdir("test-results", { recursive: true });
@@ -100,7 +114,9 @@ try {
     "SVG embeds fonts offline",
     svg.includes("data:font/ttf") && !svg.includes("/assets/fonts/"),
   );
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "pdf");
+  await reveal(page, "exportPages");
   await page.selectOption("#exportPages", "all");
   await page.evaluate(
     () =>
@@ -108,11 +124,35 @@ try {
         window.__printed = true;
       }),
   );
+  await reveal(page, "doExport");
   await page.click("#doExport");
   await page.waitForFunction(() => window.__printed);
   check(
     "PDF option opens local print workflow",
     (await page.locator("#printSheet svg").count()) === 2,
+  );
+  await page.locator("#exportDialog .dialoghead button").click();
+  await page.locator("#openBadgeEditor").click();
+  check(
+    "dedicated badge editor works offline",
+    await page.locator("#badgeEditor").isVisible(),
+  );
+  await page.locator("#cancelBadgeDraft").click();
+  await page.locator("#library").click();
+  await page.locator("#libraryDialog[open]").waitFor();
+  check(
+    "template galleries render offline",
+    (await page.locator("#designTemplates .template-card").count()) > 0,
+  );
+  await page.locator("#createDesignTemplate").click();
+  await page.locator("#managedTemplateName").fill("เทมเพลตออฟไลน์");
+  await page.locator("#saveTemplateDetails").click();
+  await page.locator("#customTemplates .template-card").first().waitFor();
+  check(
+    "template creation persists offline",
+    (await page.locator("#customTemplates").textContent()).includes(
+      "เทมเพลตออฟไลน์",
+    ),
   );
   check("no external network required", requests.length === 1);
   check("no JavaScript errors", errors.length === 0);

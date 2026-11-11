@@ -324,6 +324,12 @@ const server = http.createServer(async (req, res) => {
     const files = new Set([
       "index.html",
       "app.js",
+      "batch.js",
+      "workspace-state.js",
+      "template-manager.js",
+      "position-controls.js",
+      "badge-editor.js",
+      "editor-controls.js",
       "model.js",
       "render.js",
       "geometry.js",

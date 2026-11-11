@@ -13,17 +13,103 @@
   <body>
     <header>
       <div class="brand">
-        <span class="logo">◉</span>
+        <span class="logo" aria-hidden="true"
+          ><svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+            /></svg
+        ></span>
         <div>
           <strong>My Badge Studio</strong
           ><small>ออกแบบง่าย • ขนาดจริง • พร้อมพิมพ์</small>
         </div>
       </div>
       <nav aria-label="โปรเจกต์">
-        <button id="library">เทมเพลต</button
-        ><button id="save">บันทึกไฟล์</button><button id="open">เปิดไฟล์</button
-        ><button id="account">บัญชี / เซิร์ฟเวอร์</button
-        ><button id="export" class="primary">ส่งออก / พิมพ์</button>
+        <button
+          id="library"
+          title="เลือกงานต้นแบบ หรือเปิดเทมเพลตที่บันทึกในเบราว์เซอร์นี้"
+        >
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+            /></svg
+          ><span>คลังเทมเพลต</span></button
+        ><button
+          id="save"
+          title="ดาวน์โหลดไฟล์ .json พร้อมรูปและข้อความ เพื่อเปิดแก้ไขภายหลัง"
+        >
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 3h14l3 3v15H3V3z M7 3v6h10V3 M7 21v-8h10v8" /></svg
+          ><span>ดาวน์โหลดโปรเจกต์</span></button
+        ><button id="open" title="เลือกไฟล์โปรเจกต์ .json ที่เคยดาวน์โหลดไว้">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 7V4h6l2 3h10v13H3z" /></svg
+          ><span>เปิดโปรเจกต์ (.json)</span></button
+        ><button id="account">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M20 21v-2a7 7 0 0 0-14 0v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8"
+            /></svg
+          ><span>บัญชี</span></button
+        ><button id="export" class="primary">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3v12 M7 8l5-5 5 5 M4 14v7h16v-7" /></svg
+          ><span>ส่งออก / พิมพ์</span>
+        </button>
       </nav>
       <input
         hidden
@@ -43,14 +129,139 @@
           <option>cm</option>
           <option>inch</option>
         </select></label
-      ><button id="undo" title="Ctrl/Cmd+Z">↶ ย้อนกลับ</button
-      ><button id="redo" title="Ctrl/Cmd+Shift+Z">↷ ทำซ้ำ</button
+      ><button
+        id="undo"
+        class="icon-button"
+        aria-label="ย้อนกลับ"
+        title="Ctrl/Cmd+Z"
+      >
+        <svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M9 4 3 10l6 6 M3 10h11a7 7 0 0 1 7 7" /></svg
+        ><span>ย้อนกลับ</span></button
+      ><button
+        id="redo"
+        class="icon-button"
+        aria-label="ทำซ้ำ"
+        title="Ctrl/Cmd+Shift+Z"
+      >
+        <svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m15 4 6 6-6 6 M21 10H10a7 7 0 0 0-7 7" /></svg
+        ><span>ทำซ้ำ</span></button
       ><span id="saveStatus" class="muted" role="status"></span
-      ><button id="help">วิธีใช้</button>
+      ><button id="help">
+        <svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M9 9a3 3 0 1 1 5 2c-2 1-2 2-2 3 M12 17v.1 M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20"
+          /></svg
+        ><span>วิธีใช้</span>
+      </button>
     </div>
+    <section
+      id="editingMode"
+      class="editing-mode"
+      aria-label="โหมดแก้ไขเทมเพลต"
+      hidden
+    >
+      <div>
+        <strong id="editingTitle"></strong
+        ><span id="editingHint">การเปลี่ยนแปลงยังไม่ถูกบันทึกลงเทมเพลต</span>
+      </div>
+      <button id="saveTemplateEdits" type="button">บันทึกการแก้ไข</button
+      ><button id="finishTemplateEdits" type="button">จบการแก้ไข</button>
+    </section>
+    <nav class="workspace-nav" aria-label="เครื่องมือออกแบบ">
+      <a href="#itemSettings"
+        ><svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+          /></svg
+        >ขนาดชิ้นงาน</a
+      >
+      <a href="#designSettings"
+        ><svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 3h18v18H3z m0 14 6-6 5 5 3-3 4 4 M15 7h.01" /></svg
+        >รูปและข้อความ</a
+      >
+      <a href="#paperSettings"
+        ><svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M14 2H5v20h14V7z M14 2v6h5" /></svg
+        >จัดหน้ากระดาษ</a
+      >
+    </nav>
     <main>
-      <aside aria-label="ตั้งค่างาน">
-        <h2>1. ชิ้นงาน</h2>
+      <aside id="itemSettings" aria-label="ตั้งค่างาน">
+        <h2>
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18" />
+          </svg>
+          ขนาดชิ้นงาน
+        </h2>
+        <p class="hint section-intro">
+          เลือกประเภทและขนาดให้ตรงกับงานที่จะผลิต
+        </p>
         <p id="selection" class="selection"></p>
         <label
           >ประเภท<select id="type">
@@ -82,12 +293,66 @@
           >หมายเหตุ/รายละเอียด<textarea id="notes" rows="2"></textarea>
         </label>
         <div class="pair">
-          <button id="addItem">＋ เพิ่มชิ้นงาน</button
-          ><button id="duplicateItem">ทำสำเนาชิ้น</button>
+          <button id="addItem">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" /></svg
+            ><span>เพิ่มชิ้นงาน</span></button
+          ><button id="duplicateItem">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 9h11v11H9z M5 15H3V3h12v2" /></svg
+            ><span>ทำสำเนา</span>
+          </button>
         </div>
-        <button id="deleteItem" class="danger">ลบชิ้นที่เลือก</button>
-        <details open>
-          <summary>2. กระดาษและการจัดวาง</summary>
+        <button id="deleteItem" class="danger">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"
+            /></svg
+          ><span>ลบชิ้นที่เลือก</span>
+        </button>
+        <details id="paperSettings">
+          <summary>
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z" />
+            </svg>
+            กระดาษและการจัดวาง
+          </summary>
           <label
             >กระดาษ<select id="paper">
               <option value="210,297">A4</option>
@@ -108,7 +373,20 @@
               >สูง<input id="height" data-dim type="number" step="any"
             /></label>
           </div>
-          <button id="rotate">สลับแนวกระดาษ</button>
+          <button id="rotate">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 3v6h6 M3 9a9 9 0 1 1 0 7" /></svg
+            ><span>สลับแนวกระดาษ</span>
+          </button>
           <div class="pair">
             <label
               >ขอบบน<input id="top" data-dim type="number" step="any" /></label
@@ -156,9 +434,49 @@
                 step="1"
             /></label>
           </div>
-          <button id="fillGrid" class="wide">จัดเต็มหน้าตามชิ้นที่เลือก</button
-          ><button id="pack" class="wide">จัดเรียงชิ้นที่มี / ผสมขนาด</button
-          ><button id="saveLayout">บันทึกเลย์เอาต์</button
+          <button id="fillGrid" class="wide">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+              /></svg
+            ><span>จัดเต็มหน้าตามชิ้นที่เลือก</span></button
+          ><button id="pack" class="wide">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+              /></svg
+            ><span>จัดเรียงชิ้นที่มี / ผสมขนาด</span></button
+          ><button id="saveLayout">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 3h14l3 3v15H3V3z M7 3v6h10V3 M7 21v-8h10v8" /></svg
+            ><span>บันทึกเลย์เอาต์</span></button
           ><label
             >เลย์เอาต์ที่บันทึก<select id="layouts">
               <option value="">เลือกเลย์เอาต์</option>
@@ -168,10 +486,25 @@
               <option value="current">หน้าปัจจุบัน</option>
               <option value="new">หน้าใหม่</option>
             </select></label
-          ><button id="loadLayout">โหลดเลย์เอาต์</button>
+          ><button id="loadLayout">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+              /></svg
+            ><span>โหลดเลย์เอาต์</span>
+          </button>
         </details>
         <details>
-          <summary>3. เส้นและเครื่องหมาย</summary>
+          <summary>เส้นและเครื่องหมาย</summary>
           <label
             >เลือกประเภทเส้น<select id="styleTarget">
               <option value="cut">เส้นตัด</option>
@@ -229,12 +562,94 @@
       </aside>
       <section class="workspace" aria-label="พื้นที่ออกแบบ">
         <div class="toolbar">
-          <button id="prevPage" aria-label="หน้าก่อนหน้า">←</button
+          <button
+            id="prevPage"
+            class="icon-button"
+            aria-label="หน้าก่อนหน้า"
+            title="หน้าก่อนหน้า"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m14 6-6 6 6 6" /></svg
+            ><span>หน้าก่อนหน้า</span></button
           ><label>หน้า<select id="pageSelect"></select></label
-          ><button id="nextPage" aria-label="หน้าถัดไป">→</button
-          ><button id="addPage">＋ หน้า</button
-          ><button id="duplicatePage">สำเนาหน้า</button
-          ><button id="deletePage">ลบหน้า</button
+          ><button
+            id="nextPage"
+            class="icon-button"
+            aria-label="หน้าถัดไป"
+            title="หน้าถัดไป"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m10 6 6 6-6 6" /></svg
+            ><span>หน้าถัดไป</span></button
+          ><button id="addPage">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" /></svg
+            ><span>เพิ่มหน้า</span></button
+          ><button
+            id="duplicatePage"
+            class="icon-button"
+            aria-label="ทำสำเนาหน้า"
+            title="ทำสำเนาหน้า"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 9h11v11H9z M5 15H3V3h12v2" /></svg
+            ><span>ทำสำเนาหน้า</span></button
+          ><button
+            id="deletePage"
+            class="icon-button"
+            aria-label="ลบหน้า"
+            title="ลบหน้า"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"
+              /></svg
+            ><span>ลบหน้า</span></button
           ><label
             >ซูม<select id="zoom">
               <option value="fit">พอดีหน้า</option>
@@ -246,66 +661,352 @@
           ><label class="check"
             ><input id="moveMode" type="checkbox" /> ลากย้ายชิ้นงาน</label
           >
+          <div
+            class="layout-options"
+            role="group"
+            aria-label="รูปแบบการจัดเรียง"
+          >
+            <button
+              type="button"
+              data-layout-mode="grid"
+              aria-pressed="true"
+              title="เรียงเป็นแถวและคอลัมน์"
+            >
+              <svg
+                class="layout-preview"
+                viewBox="0 0 54 36"
+                aria-hidden="true"
+              >
+                <g fill="none" stroke="currentColor" stroke-width="1.7">
+                  <circle cx="10" cy="10" r="6" />
+                  <circle cx="27" cy="10" r="6" />
+                  <circle cx="44" cy="10" r="6" />
+                  <circle cx="10" cy="27" r="6" />
+                  <circle cx="27" cy="27" r="6" />
+                  <circle cx="44" cy="27" r="6" />
+                </g></svg
+              ><span>ตาราง</span>
+            </button>
+            <button
+              type="button"
+              data-layout-mode="staggered"
+              aria-pressed="false"
+              title="สลับคอลัมน์ครึ่งแถวตามตัวอย่าง"
+            >
+              <svg
+                class="layout-preview"
+                viewBox="0 0 54 43"
+                aria-hidden="true"
+              >
+                <g fill="none" stroke="currentColor" stroke-width="1.7">
+                  <circle cx="10" cy="10" r="7" />
+                  <circle cx="27" cy="20" r="7" />
+                  <circle cx="44" cy="10" r="7" />
+                  <circle cx="10" cy="30" r="7" />
+                  <circle cx="27" cy="40" r="7" />
+                  <circle cx="44" cy="30" r="7" />
+                </g></svg
+              ><span>สลับแถว</span>
+            </button>
+          </div>
+          <button
+            id="autoArrange"
+            type="button"
+            title="เรียงชิ้นงานทั้งหมดในหน้า โดยคงขนาดและดีไซน์เดิม"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"
+              /></svg
+            ><span>จัดเรียงอัตโนมัติ</span>
+          </button>
+        </div>
+
+        <div
+          class="selection-tools"
+          role="group"
+          aria-label="จัดการชิ้นที่เลือก"
+        >
+          <div class="selection-summary">
+            <strong id="selectionCount" role="status"></strong
+            ><button id="selectAll" type="button" title="Ctrl/Cmd+A">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 3h6 M3 3v6 M15 3h6v6 M21 15v6h-6 M9 21H3v-6" /></svg
+              ><span>เลือกทั้งหมด</span></button
+            ><button id="clearSelection" type="button" title="Esc">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12 M6 18 18 6" /></svg
+              ><span>ยกเลิกเลือก</span>
+            </button>
+          </div>
+          <div class="batch-actions">
+            <button
+              id="batchRound"
+              type="button"
+              title="Ctrl/Cmd+Shift+C • เข็มกลัด 44 mm (ปรับขนาดต่อได้ด้านซ้าย)"
+            >
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18" /></svg
+              ><span>เข็มกลัดวงกลม</span></button
+            ><button
+              id="batchSquare"
+              type="button"
+              title="Ctrl/Cmd+Shift+S • แม่เหล็ก 50 mm (ปรับขนาดต่อได้ด้านซ้าย)"
+            >
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 4h16v16H4z" /></svg
+              ><span>แม่เหล็ก</span></button
+            ><button id="batchSticker" type="button" title="สติกเกอร์">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 3h16v11l-6 7H4z M14 21v-7h6" /></svg
+              ><span>สติกเกอร์</span></button
+            ><button id="duplicateSelected" type="button" title="Ctrl/Cmd+D">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 9h11v11H9z M5 15H3V3h12v2" /></svg
+              ><span>ทำสำเนา</span></button
+            ><button id="deleteSelected" type="button" title="Delete">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"
+                /></svg
+              ><span>ลบ</span>
+            </button>
+          </div>
+          <p class="gesture-hint">
+            ลากคลุมเพื่อเลือกหลายชิ้น · Shift + คลิกเพื่อเลือกเพิ่ม · Ctrl/Cmd +
+            เลื่อนเมาส์เพื่อซูม
+          </p>
+        </div>
+        <div id="spacingWarning" class="spacing-warning" role="alert" hidden>
+          <div>
+            <strong id="spacingTitle"></strong>
+            <p id="spacingDetails"></p>
+          </div>
+          <button type="button" id="fixSpacing">จัดเรียงใหม่</button>
         </div>
         <div id="status" role="status" aria-live="polite"></div>
         <div class="canvas" id="canvas">
           <div id="sheetWrap"><div id="sheet"></div></div>
+        </div>
+        <div class="canvas-legend" aria-label="คำอธิบายเส้น">
+          <span><i class="legend-cut"></i>เส้นตัด</span
+          ><span><i class="legend-face"></i>หน้าชิ้นงาน</span
+          ><span><i class="legend-safe"></i>พื้นที่ปลอดภัย</span>
         </div>
         <footer>
           <span id="count"></span
           ><span>ขนาดบนจอขึ้นกับอุปกรณ์ • งานพิมพ์ใช้ 100%</span>
         </footer>
       </section>
-      <aside aria-label="ออกแบบชิ้นที่เลือก">
-        <h2>4. รูปและข้อความ</h2>
-        <p class="hint">คลิกชิ้นงานบนกระดาษเพื่อเลือก ลากรูปมาวางได้</p>
+      <aside id="designSettings" aria-label="ออกแบบชิ้นที่เลือก">
+        <h2>
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 3h18v18H3z M3 17l6-6 5 5 3-3 4 4" />
+          </svg>
+          รูปและข้อความ
+        </h2>
+        <button type="button" id="openBadgeEditor" class="wide">
+          เปิดตัวแก้ไขดีไซน์
+        </button>
+        <p id="designSelection" class="design-selection"></p>
+        <p class="hint">
+          แก้ไขชิ้นที่เลือกบนกระดาษ หรือวางรูปลงบนชิ้นงานได้เลย
+        </p>
         <label
-          >เพิ่มรูป (เลือกหลายไฟล์ได้)<input
+          >เพิ่มรูปให้ชิ้นที่เลือก<input
             id="image"
             type="file"
             accept="image/png,image/jpeg,image/webp"
             multiple /></label
-        ><button id="clearImage">ล้างรูปชิ้นนี้</button
+        ><button
+          id="clearImage"
+          title="Ctrl/Cmd+Shift+Delete • ลบเฉพาะรูปจากชิ้นที่เลือก"
+        >
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"
+            /></svg
+          ><span>ลบรูปภาพ</span></button
         ><label
-          >รูปแบบภาพ<select id="imageFit">
+          >การวางรูป<select id="imageFit">
             <option value="cover">เต็มพื้นที่ / ครอบส่วนเกิน</option>
             <option value="contain">เห็นภาพทั้งหมด</option>
           </select></label
-        ><label
-          >ขยายภาพ (%)<input
-            id="imageScale"
-            type="number"
-            min="1"
-            max="2000"
-            step="1"
-        /></label>
-        <div class="pair">
+        >
+        <details class="image-adjustments">
+          <summary>ปรับขนาดและตำแหน่งรูป</summary>
           <label
-            >เลื่อนรูป X<input
-              id="imageX"
-              data-dim
+            >ขยายภาพ (%)<input
+              id="imageScale"
               type="number"
-              step="any" /></label
-          ><label
-            >เลื่อนรูป Y<input id="imageY" data-dim type="number" step="any"
+              min="1"
+              max="2000"
+              step="1"
           /></label>
-        </div>
-        <label
-          >หมุนรูป (องศา)<input
-            id="imageRotation"
-            type="number"
-            step="any" /></label
-        ><label>สีพื้นหลัง<input id="background" type="color" /></label
+          <div class="pair">
+            <label
+              >เลื่อนแนวนอน (X)<input
+                id="imageX"
+                data-dim
+                type="number"
+                step="any" /></label
+            ><label
+              >เลื่อนแนวตั้ง (Y)<input
+                id="imageY"
+                data-dim
+                type="number"
+                step="any"
+            /></label>
+          </div>
+          <label
+            >หมุนรูป (องศา)<input id="imageRotation" type="number" step="any"
+          /></label>
+        </details>
+        <label>สีพื้นหลัง<input id="background" type="color" /></label
         ><label
           >สีพื้นหลัง HEX / RGB<input id="backgroundHex" maxlength="32"
         /></label>
+        <p class="hint">
+          หนึ่งรูปใช้กับทุกชิ้นที่เลือก • หากเลือกหลายรูป จะวนใช้ตามลำดับชิ้นงาน
+        </p>
         <p id="imageQuality" class="hint"></p>
         <details open>
-          <summary>ข้อความหลายเลเยอร์</summary>
+          <summary>
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 4h16 M12 4v16 M8 20h8" />
+            </svg>
+            ข้อความบนชิ้นงาน
+          </summary>
           <label>เลเยอร์ข้อความ<select id="textLayer"></select></label>
           <div class="pair">
-            <button id="addText">＋ ข้อความ</button
-            ><button id="deleteText">ลบเลเยอร์</button>
+            <button id="addText">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14" /></svg
+              ><span>เพิ่มข้อความ</span></button
+            ><button id="deleteText">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"
+                /></svg
+              ><span>ลบข้อความ</span>
+            </button>
           </div>
           <label
             >ข้อความ<textarea
@@ -346,7 +1047,22 @@
           ><label>สีข้อความ<input id="textColor" type="color" /></label
           ><label
             >สีข้อความ HEX / RGB<input id="textHex" maxlength="32" /></label
-          ><button id="textFront">ย้ายเลเยอร์มาด้านหน้า</button>
+          ><button id="textFront">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="m12 3 10 6-10 6L2 9z M2 13l10 6 10-6 M2 17l10 6 10-6"
+              /></svg
+            ><span>ย้ายเลเยอร์มาด้านหน้า</span>
+          </button>
         </details>
         <details>
           <summary>ตำแหน่งชิ้นงานบนกระดาษ</summary>
@@ -362,10 +1078,52 @@
             /></label>
           </div>
         </details>
-        <button id="applyAll" class="wide">ใช้ดีไซน์กับทุกชิ้นในหน้านี้</button
-        ><button id="bulk" class="wide">ใส่ข้อมูลจำนวนมาก (CSV)</button
+        <button
+          id="applyAll"
+          class="wide"
+          aria-pressed="false"
+          title="ใช้รูป ข้อความ และสีร่วมกันทั้งหน้า สถานะจะเปลี่ยนเมื่อแก้ไขบางชิ้น"
+        >
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="m12 3 10 6-10 6L2 9z M2 13l10 6 10-6 M2 17l10 6 10-6"
+            /></svg
+          ><span>ใช้ดีไซน์กับทุกชิ้นในหน้านี้</span></button
+        ><button id="bulk" class="wide">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 4h16 M12 4v16 M8 20h8" /></svg
+          ><span>ใส่ข้อมูลจำนวนมาก (CSV)</span></button
         ><button id="saveTemplate" class="wide">
-          บันทึกเป็นเทมเพลตส่วนตัว
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 3h14l3 3v15H3V3z M7 3v6h10V3 M7 21v-8h10v8" /></svg
+          ><span>บันทึกเป็นเทมเพลต</span>
         </button>
       </aside>
     </main>
@@ -419,18 +1177,101 @@
         100% ปิด Fit to page และวัดงานทดสอบก่อนผลิต
       </p>
       <p id="exportStatus" role="status"></p>
-      <button id="doExport" class="primary wide">สร้างไฟล์ / พิมพ์</button>
+      <button id="doExport" class="primary wide">
+        <svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 3h14l3 3v15H3V3z M7 3v6h10V3 M7 21v-8h10v8" /></svg
+        ><span>สร้างไฟล์ / พิมพ์</span>
+      </button>
     </dialog>
-    <dialog id="libraryDialog">
+    <dialog id="templateSaveDialog" aria-labelledby="templateSaveTitle">
+      <div class="dialoghead">
+        <h2 id="templateSaveTitle">บันทึกเทมเพลตไว้ใช้ซ้ำ</h2>
+        <button type="button" id="closeTemplateSave" aria-label="ปิด">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12 M6 18 18 6" />
+          </svg>
+        </button>
+      </div>
+      <p>
+        เก็บทุกหน้า รูปภาพ ข้อความ และการจัดวางของโปรเจกต์นี้เป็นต้นแบบ
+        โดยไม่เปลี่ยนงานที่กำลังทำ
+      </p>
+      <form id="templateSaveForm">
+        <label for="templateName">ชื่อเทมเพลต</label
+        ><input
+          id="templateName"
+          maxlength="200"
+          required
+          placeholder="เช่น เข็มกลัดงานโรงเรียน 58 mm"
+        />
+        <p class="hint">
+          เก็บในเบราว์เซอร์และอุปกรณ์นี้เท่านั้น หากต้องการย้ายเครื่อง ให้ใช้
+          “ดาวน์โหลดโปรเจกต์” เพื่อเก็บไฟล์ .json
+        </p>
+        <p id="templateSaveStatus" role="status"></p>
+        <button type="submit" id="confirmSaveTemplate" class="primary wide">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M4 3h14l3 3v15H3V3z M7 3v6h10V3 M7 21v-8h10v8" /></svg
+          >บันทึกเทมเพลต
+        </button>
+      </form>
+    </dialog>
+    <dialog id="libraryDialog" aria-labelledby="libraryTitle">
       <form method="dialog" class="dialoghead">
-        <h2>เทมเพลตและดีไซน์</h2>
+        <h2 id="libraryTitle">คลังเทมเพลต</h2>
         <button aria-label="ปิด">✕</button>
       </form>
       <p>
         เลือกขนาดเพื่อเริ่มโปรเจกต์ใหม่ หรือเลือกดีไซน์ใช้กับชิ้นงานปัจจุบัน
       </p>
-      <div id="readyTemplates" class="cards"></div>
-      <h3>เทมเพลตส่วนตัว</h3>
+      <p id="libraryStatus" role="status"></p>
+      <div id="libraryGalleries">
+        <section id="designGallery">
+          <h3>ดีไซน์เข็มกลัด</h3>
+          <p class="hint">เลือกดีไซน์เพื่อใช้กับทุกชิ้นที่เลือก</p>
+          <div id="designTemplates" class="cards"></div>
+        </section>
+        <section id="layoutGallery">
+          <h3>ต้นแบบการจัดหน้า</h3>
+          <p class="hint">
+            เริ่มโปรเจกต์ใหม่ตามขนาด หรือใช้การจัดวางที่บันทึกไว้
+          </p>
+          <div id="readyTemplates" class="cards"></div>
+          <h3>เลย์เอาต์ที่บันทึกไว้</h3>
+          <div id="savedLayoutTemplates" class="cards"></div>
+        </section>
+      </div>
+      <h3>เทมเพลตของฉัน</h3>
+      <p class="hint">
+        บันทึกในเบราว์เซอร์นี้ • เปิดเป็นโปรเจกต์เพื่อแก้ไขต่อได้
+      </p>
       <div id="customTemplates" class="cards"></div>
     </dialog>
     <dialog id="bulkDialog">
@@ -516,7 +1357,33 @@
         เส้นน้ำเงิน = หน้าชิ้นงาน • เส้นเขียว = พื้นที่ปลอดภัย • เส้นเทา =
         ขอบตัด
       </p>
-      <p>Ctrl/Cmd+Z ย้อนกลับ • Ctrl/Cmd+Shift+Z ทำซ้ำ</p>
+      <h3>คีย์ลัดบนพื้นที่ออกแบบ</h3>
+      <dl class="shortcut-list">
+        <dt>Shift + คลิก / ลากคลุม</dt>
+        <dd>เลือกหลายชิ้น</dd>
+        <dt>Ctrl/Cmd + A</dt>
+        <dd>เลือกทุกชิ้นในหน้า</dd>
+        <dt>Ctrl/Cmd + Shift + Delete</dt>
+        <dd>ลบเฉพาะรูปจากทุกชิ้นที่เลือก</dd>
+        <dt>Delete / Backspace</dt>
+        <dd>ลบชิ้นที่เลือก</dd>
+        <dt>Ctrl/Cmd + D</dt>
+        <dd>ทำสำเนาชิ้นที่เลือก</dd>
+        <dt>Ctrl/Cmd + Shift + S</dt>
+        <dd>เปลี่ยนเป็นแม่เหล็กสี่เหลี่ยม</dd>
+        <dt>Ctrl/Cmd + Shift + C</dt>
+        <dd>เปลี่ยนเป็นเข็มกลัดวงกลม</dd>
+        <dt>Ctrl/Cmd + เลื่อนเมาส์</dt>
+        <dd>ซูมเข้า / ออก</dd>
+        <dt>Ctrl/Cmd + Z / Shift + Z</dt>
+        <dd>ย้อนกลับ / ทำซ้ำ</dd>
+        <dt>Esc</dt>
+        <dd>ยกเลิกการเลือก</dd>
+      </dl>
+      <p class="hint">
+        คีย์ลัดชิ้นงานจะไม่ทำงานขณะพิมพ์ข้อความหรือเปิดหน้าต่าง
+        เพื่อให้แก้ไขข้อมูลได้ตามปกติ
+      </p>
     </dialog>
     <script type="module" src="/app.js"></script>
   </body>

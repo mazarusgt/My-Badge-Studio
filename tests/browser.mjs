@@ -1,3 +1,4 @@
+import { reveal } from "./editor-helpers.mjs";
 import { chromium } from "playwright-core";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -54,6 +55,15 @@ const check = (name, fn) => {
   console.log("PASS", name);
 };
 async function change(id, value) {
+  await page.locator("#" + id).evaluate((input) => {
+    for (
+      let group = input.closest("details");
+      group;
+      group = group.parentElement.closest("details")
+    )
+      group.open = true;
+  });
+  await reveal(page, id);
   await page.locator("#" + id).fill(String(value));
   await page.locator("#" + id).dispatchEvent("change");
 }
@@ -71,20 +81,37 @@ try {
     "initial A4 page rendered",
     (await page.locator("#sheet svg").getAttribute("width")) === "210mm",
   );
+  check(
+    "advanced image controls start collapsed",
+    (await page.locator(".image-adjustments").getAttribute("open")) === null,
+  );
+  await page.locator('.workspace-nav a[href="#paperSettings"]').click();
+  check(
+    "paper shortcut reveals settings",
+    await page.locator("#paper").isVisible(),
+  );
+  await reveal(page, "preset");
   await page.selectOption("#preset", "73");
   check("73 mm preset", (await page.inputValue("#face")) === "73");
+  await reveal(page, "unit");
   await page.selectOption("#unit", "inch");
   check(
     "inch conversion leaves physical 83 mm cut",
     Math.abs(Number(await page.inputValue("#outer")) - 83 / 25.4) < 1e-9,
   );
+  await reveal(page, "unit");
   await page.selectOption("#unit", "mm");
+  await reveal(page, "faceUnit");
   await page.selectOption("#faceUnit", "cm");
   check("per-field cm conversion", (await page.inputValue("#face")) === "7.3");
+  await reveal(page, "faceUnit");
   await page.selectOption("#faceUnit", "mm");
+  await reveal(page, "fillGrid");
   await page.click("#fillGrid");
+  await reveal(page, "addText");
   await page.click("#addText");
   await change("caption", "สวัสดี {{name}}");
+  await reveal(page, "addText");
   await page.click("#addText");
   await change("caption", "ทีมงาน");
   await change("textSize", 4);
@@ -105,6 +132,7 @@ try {
     x.fillRect(100, 100, 500, 500);
     return c.toDataURL("image/png").split(",")[1];
   });
+  await reveal(page, "image");
   await page.setInputFiles("#image", {
     name: "sample.png",
     mimeType: "image/png",
@@ -128,47 +156,63 @@ try {
         .getAttribute("transform")
     ).includes("43.5"),
   );
+  await reveal(page, "saveLayout");
   await page.click("#saveLayout");
+  await reveal(page, "layouts");
   await page.selectOption("#layouts", "0");
+  await reveal(page, "layoutTarget");
   await page.selectOption("#layoutTarget", "new");
+  await reveal(page, "loadLayout");
   await page.click("#loadLayout");
   check(
     "saved layout loaded on a new page",
     (await page.locator("#pageSelect option").count()) === 2,
   );
   await page.locator('#sheet [data-slot="5"]').click();
+  await reveal(page, "type");
   await page.selectOption("#type", "square");
+  await reveal(page, "preset");
   await page.selectOption("#preset", "50");
+  await reveal(page, "pack");
   await page.click("#pack");
   check(
     "mixed sizes fit without changing 50 mm item",
     (await page.inputValue("#outer")) === "50",
   );
+  await reveal(page, "undo");
   await page.click("#undo");
+  await reveal(page, "redo");
   await page.click("#redo");
   check(
     "undo/redo retain selected size",
     (await page.inputValue("#outer")) === "50",
   );
+  await reveal(page, "prevPage");
   await page.click("#prevPage");
+  await reveal(page, "duplicatePage");
   await page.click("#duplicatePage");
   check(
     "page duplication",
     (await page.locator("#pageSelect option").count()) === 3,
   );
+  await reveal(page, "deletePage");
   await page.click("#deletePage");
   check(
     "page deletion",
     (await page.locator("#pageSelect option").count()) === 2,
   );
+  await reveal(page, "prevPage");
   await page.click("#prevPage");
+  await reveal(page, "textLayer");
   await page.selectOption("#textLayer", "0");
   await change("caption", "สวัสดี {{name}}");
+  await reveal(page, "bulk");
   await page.click("#bulk");
   await page.fill(
     "#csvText",
     "name,title,image\nสมชาย,ทีมงาน,sample.png\nสมหญิง,ผู้จัดงาน,sample.png",
   );
+  await reveal(page, "applyBulk");
   await page.click("#applyBulk");
   check(
     "CSV adds pages",
@@ -195,6 +239,7 @@ try {
     "autosaved project restored",
     (await page.locator("#pageSelect option").count()) === 3,
   );
+  await reveal(page, "projectFile");
   await page.setInputFiles("#projectFile", `${dir}/project.json`);
   await page.waitForFunction(
     () => document.querySelector("#status").textContent === "เปิดโปรเจกต์แล้ว",
@@ -203,17 +248,25 @@ try {
     "downloaded JSON restores original image",
     (await page.locator("#sheet [data-slot] use").count()) === 1,
   );
+  await page.locator('.workspace-nav a[href="#paperSettings"]').click();
+  await reveal(page, "pageSelect");
   await page.selectOption("#pageSelect", "2");
+  await reveal(page, "paper");
   await page.selectOption("#paper", "215.9,279.4");
+  await reveal(page, "export");
   await page.click("#export");
+  await reveal(page, "exportPages");
   await page.selectOption("#exportPages", "all");
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "svg");
   await download(() => page.click("#doExport"), "pages.zip");
   check(
     "multi-page SVG ZIP downloaded",
     (await fs.stat(`${dir}/pages.zip`)).size > 1000,
   );
+  await reveal(page, "exportPages");
   await page.selectOption("#exportPages", "current");
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "png");
   await change("dpi", 150);
   await download(() => page.click("#doExport"), "sheet.png");
@@ -222,7 +275,9 @@ try {
     "PNG contains physical resolution metadata",
     png.includes(Buffer.from("pHYs")),
   );
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "pdf");
+  await reveal(page, "exportPages");
   await page.selectOption("#exportPages", "all");
   await download(() => page.click("#doExport"), "project.pdf");
   const pdf = await PDFDocument.load(await fs.readFile(`${dir}/project.pdf`));
@@ -236,20 +291,25 @@ try {
     Math.abs(pdf.getPage(2).getWidth() - 612) < 0.00001 &&
       Math.abs(pdf.getPage(2).getHeight() - 792) < 0.00001,
   );
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "dxf");
+  await reveal(page, "exportPages");
   await page.selectOption("#exportPages", "current");
   await download(() => page.click("#doExport"), "cut.dxf");
   check(
     "DXF identifies millimetres",
     (await fs.readFile(`${dir}/cut.dxf`, "utf8")).includes("$INSUNITS\n70\n4"),
   );
+  await reveal(page, "exportFormat");
   await page.selectOption("#exportFormat", "print");
+  await reveal(page, "exportPages");
   await page.selectOption("#exportPages", "all");
   await page.evaluate(() => {
     window.print = () => {
       window.__printed = true;
     };
   });
+  await reveal(page, "doExport");
   await page.click("#doExport");
   await page.waitForFunction(() => window.__printed === true);
   check(
@@ -266,12 +326,17 @@ try {
     }),
   );
   await page.locator("#exportDialog .dialoghead button").click();
+  await reveal(page, "account");
   await page.click("#account");
   const suffix = Date.now();
+  await reveal(page, "username");
   await page.fill("#username", `test_${suffix}`);
+  await reveal(page, "password");
   await page.fill("#password", "test-password-123");
+  await reveal(page, "register");
   await page.click("#register");
   await page.waitForFunction(() => !document.querySelector("#signedIn").hidden);
+  await reveal(page, "serverSave");
   await page.click("#serverSave");
   await page.locator("[data-server-open]").waitFor();
   check(

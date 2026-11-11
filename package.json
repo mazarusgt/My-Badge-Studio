@@ -11,7 +11,10 @@
     "format": "prettier --write \"*.{js,html,css,json}\" \"tests/*.{js,mjs}\" \"docs/*.md\" README.md \"scripts/*.mjs\"",
     "format:check": "prettier --check \"*.{js,html,css,json}\" \"tests/*.{js,mjs}\" \"docs/*.md\" README.md \"scripts/*.mjs\"",
     "build:portable": "node scripts/build-portable.mjs",
-    "test:portable": "node tests/portable.mjs"
+    "test:portable": "node tests/portable.mjs",
+    "test:canvas": "node tests/canvas.mjs",
+    "test:editor": "node tests/editor-browser.mjs",
+    "test:studio": "node tests/studio.mjs"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",

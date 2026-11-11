@@ -67,6 +67,12 @@ export function newProject() {
 export function gridItems(page, design) {
   const { paper: p, layout: l } = page,
     d = design.outer;
+  if (l.mode === "staggered")
+    return staggeredSlots(page, d, design.type !== "square").map((pos) => ({
+      ...clone(design),
+      id: id(),
+      ...pos,
+    }));
   const maxCols = Math.max(
       0,
       Math.floor((p.width - p.left - p.right + l.gapX + 1e-9) / (d + l.gapX)),
@@ -87,7 +93,75 @@ export function gridItems(page, design) {
     y: p.top + Math.floor(i / cols) * (d + l.gapY),
   }));
 }
+// Geometry uses a 0.001 mm tolerance to ignore floating-point contact noise.
+export function itemsIntersect(a, b, epsilon = 0.001) {
+  const ar = a.outer / 2,
+    br = b.outer / 2;
+  const ax = a.x + ar,
+    ay = a.y + ar,
+    bx = b.x + br,
+    by = b.y + br;
+  if (a.type !== "square" && b.type !== "square")
+    return Math.hypot(ax - bx, ay - by) < ar + br - epsilon;
+  if (a.type === "square" && b.type === "square")
+    return (
+      Math.min(a.x + a.outer, b.x + b.outer) - Math.max(a.x, b.x) > epsilon &&
+      Math.min(a.y + a.outer, b.y + b.outer) - Math.max(a.y, b.y) > epsilon
+    );
+  const circle = a.type === "square" ? b : a;
+  const square = a.type === "square" ? a : b;
+  const r = circle.outer / 2,
+    cx = circle.x + r,
+    cy = circle.y + r;
+  const x = Math.max(square.x, Math.min(cx, square.x + square.outer));
+  const y = Math.max(square.y, Math.min(cy, square.y + square.outer));
+  return Math.hypot(cx - x, cy - y) < r - epsilon;
+}
+function staggeredSlots(page, diameter, circles) {
+  const p = page.paper,
+    l = page.layout;
+  const dy = diameter + l.gapY;
+  const dx = circles
+    ? Math.max(
+        (diameter + l.gapX) / 2,
+        Math.sqrt(Math.max(0, (diameter + l.gapX) ** 2 - (dy / 2) ** 2)),
+      )
+    : diameter + l.gapX;
+  const slots = [];
+  for (
+    let col = 0;
+    p.left + col * dx + diameter <= p.width - p.right + 1e-7;
+    col++
+  ) {
+    for (
+      let row = 0;
+      p.top + ((col % 2) * dy) / 2 + row * dy + diameter <=
+      p.height - p.bottom + 1e-7;
+      row++
+    ) {
+      slots.push({
+        x: p.left + col * dx,
+        y: p.top + ((col % 2) * dy) / 2 + row * dy,
+      });
+      if (slots.length > 1000) throw Error("รองรับสูงสุด 1,000 ชิ้นต่อหน้า");
+    }
+  }
+  return slots;
+}
 export function packItems(page) {
+  if (page.layout.mode === "staggered" && page.items.length) {
+    const d = Math.max(...page.items.map((a) => a.outer));
+    const slots = staggeredSlots(
+      page,
+      d,
+      page.items.every((a) => a.type !== "square"),
+    );
+    if (slots.length < page.items.length)
+      throw Error("พื้นที่ไม่พอ กรุณาย้ายบางชิ้นไปหน้าใหม่");
+    page.items.forEach((a, i) => Object.assign(a, slots[i]));
+    return;
+  }
+
   const p = page.paper,
     l = page.layout;
   let x = p.left,
@@ -124,13 +198,7 @@ export function pageWarnings(page) {
       w.push(`ชิ้นที่ ${i + 1} เกินพื้นที่พิมพ์`);
     for (let j = 0; j < i; j++) {
       const b = page.items[j];
-      if (
-        a.x < b.x + b.outer - 1e-7 &&
-        a.x + a.outer > b.x + 1e-7 &&
-        a.y < b.y + b.outer - 1e-7 &&
-        a.y + a.outer > b.y + 1e-7
-      )
-        w.push(`ชิ้นที่ ${j + 1} และ ${i + 1} ทับกัน`);
+      if (itemsIntersect(a, b)) w.push(`ชิ้นที่ ${j + 1} และ ${i + 1} ทับกัน`);
     }
   }
   return w;
@@ -253,6 +321,7 @@ export function validateProject(p) {
       !["top", "right", "bottom", "left"].every((k) => nonnegative(q[k])) ||
       q.left + q.right >= q.width ||
       q.top + q.bottom >= q.height ||
+      (l.mode !== undefined && !["grid", "staggered"].includes(l.mode)) ||
       !nonnegative(l.gapX) ||
       !nonnegative(l.gapY) ||
       !["cols", "rows"].every(

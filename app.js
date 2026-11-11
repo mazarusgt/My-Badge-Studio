@@ -1,3 +1,17 @@
+import { spacingReport, allDesignsApplied } from "./workspace-state.js";
+import {
+  createPositionControls,
+  configurePageControls,
+} from "./position-controls.js";
+import { createTemplateManager } from "./template-manager.js";
+import { createBadgeEditor } from "./badge-editor.js";
+import { ensureTextLayer, setBatchProperty } from "./batch.js";
+import {
+  initEditorControls,
+  syncEditorControls,
+  updatePresetButtons,
+  revealControl,
+} from "./editor-controls.js";
 import { units } from "./geometry.js";
 import {
   clone,
@@ -8,7 +22,6 @@ import {
   presets,
   gridItems,
   packItems,
-  pageWarnings,
   productionWarnings,
   pageIndices,
   parseCSV,
@@ -42,14 +55,84 @@ let project = newProject(),
   username = null,
   undo = [],
   redo = [],
-  saveTimer,
   layoutRecords = [];
+let selectedIds = new Set(),
+  selectionPage = null;
+let templateManager, positionControls, pageControls, badgeEditor;
 const inputUnits = {};
+const selectedItems = () => pg().items.filter((a) => selectedIds.has(a.id));
+const editItems = () => (selectedIds.size ? selectedItems() : [needItem()]);
+function clearSelectedImages() {
+  if (!selectedIds.size) return;
+  transaction(
+    () => setBatchProperty(selectedItems(), "image", null),
+    `ลบรูปจาก ${selectedIds.size} ชิ้นแล้ว • ชิ้นงานยังอยู่`,
+  );
+}
+function selectItems(indices) {
+  selectedIds = new Set(
+    indices.filter((i) => pg().items[i]).map((i) => pg().items[i].id),
+  );
+  selected = indices.at(-1) ?? -1;
+  selectionPage = pg().id;
+  layerIndex = 0;
+}
+function chooseItem(index, additive = false) {
+  const indices = additive
+    ? pg().items.flatMap((a, i) => (selectedIds.has(a.id) ? [i] : []))
+    : [];
+  const at = indices.indexOf(index);
+  if (additive && at >= 0) indices.splice(at, 1);
+  else indices.push(index);
+  selectItems(indices);
+}
+function convertSelection(type) {
+  if (!selectedItems().length) return;
+  transaction(() => {
+    for (const a of selectedItems()) {
+      if (a.type === type) continue;
+      const old = a.outer;
+      a.type = type;
+      a.face = presets[type][0];
+      a.outer = a.face + (type === "round" ? 10 : 0);
+      a.safe = Math.min(a.safe, a.face / 2);
+      for (const t of a.texts) {
+        t.x *= a.outer / old;
+        t.y *= a.outer / old;
+      }
+    }
+  }, `เปลี่ยนประเภท ${selectedIds.size} ชิ้นแล้ว • จัดเรียงอัตโนมัติได้หากชิ้นงานทับกัน`);
+}
+function deleteSelection() {
+  if (!selectedIds.size) return;
+  transaction(() => {
+    pg().items = pg().items.filter((a) => !selectedIds.has(a.id));
+    selectItems([]);
+  }, "ลบชิ้นที่เลือกแล้ว • Ctrl/Cmd+Z เพื่อย้อนกลับ");
+}
+function duplicateSelection() {
+  const source = selectedItems();
+  if (!source.length) return;
+  transaction(() => {
+    const copies = source.map((a) => ({
+      ...clone(a),
+      id: id(),
+      x: a.x + 3,
+      y: a.y + 3,
+    }));
+    const start = pg().items.length;
+    pg().items.push(...copies);
+    selectItems(copies.map((_, i) => start + i));
+  }, "ทำสำเนาแล้ว • ลากย้ายหรือกดจัดเรียงอัตโนมัติ");
+}
 const pg = () => project.pages[pageIndex],
   item = () => pg().items[selected],
-  text = () => item()?.texts[layerIndex];
+  text = () =>
+    item()?.texts[layerIndex] ||
+    selectedItems().find((a) => a.texts[layerIndex])?.texts[layerIndex];
 const status = (message, error = false) => {
   $("status").textContent = message;
+  $("status").hidden = !message;
   $("status").classList.toggle("warning", error);
 };
 const report = (e) => {
@@ -109,6 +192,12 @@ function autosave() {
 }
 function transaction(fn, message) {
   const before = clone(project);
+  const previousSelection = {
+    ids: new Set(selectedIds),
+    selected,
+    pageIndex,
+    selectionPage,
+  };
   try {
     fn();
     validateProject(project);
@@ -118,18 +207,26 @@ function transaction(fn, message) {
     render();
     autosave();
     if (message) status(message);
+    return true;
   } catch (e) {
     project = before;
+    selectedIds = previousSelection.ids;
+    selected = previousSelection.selected;
+    pageIndex = previousSelection.pageIndex;
+    selectionPage = previousSelection.selectionPage;
     render();
     report(e);
+    return false;
   }
 }
 function switchProject(p) {
   validateProject(p);
+  templateManager?.resetEditing();
   transaction(() => {
     project = clone(p);
     pageIndex = 0;
     selected = 0;
+    selectionPage = null;
     layerIndex = 0;
     serverId = null;
     for (const k of Object.keys(inputUnits)) inputUnits[k] = project.unit;
@@ -137,13 +234,20 @@ function switchProject(p) {
 }
 function normalizeSelection() {
   pageIndex = Math.min(Math.max(0, pageIndex), project.pages.length - 1);
-  selected = Math.min(
-    Math.max(0, selected),
-    Math.max(0, pg().items.length - 1),
+  selected = Math.min(selected, pg().items.length - 1);
+  if (
+    selectionPage !== pg().id ||
+    (selected >= 0 && !selectedIds.has(item()?.id))
+  ) {
+    selectedIds = new Set(item() ? [item().id] : []);
+    selectionPage = pg().id;
+  }
+  selectedIds = new Set(
+    [...selectedIds].filter((id) => pg().items.some((a) => a.id === id)),
   );
   layerIndex = Math.min(
     Math.max(0, layerIndex),
-    Math.max(0, (item()?.texts.length || 0) - 1),
+    Math.max(0, ...selectedItems().map((a) => a.texts.length - 1)),
   );
 }
 function syncStyle() {
@@ -168,7 +272,14 @@ function syncForm() {
   setValue("unit", project.unit);
   for (const [key, value] of Object.entries(p)) dimValue(key, value);
   for (const k of ["gapX", "gapY"]) dimValue(k, l[k]);
-  for (const k of ["cols", "rows"]) setValue(k, l[k]);
+  for (const k of ["cols", "rows"]) {
+    setValue(k, l[k]);
+    $(k).disabled = l.mode === "staggered";
+  }
+  const selectedTab = $("selectionToolsTab");
+  if (selectedTab)
+    selectedTab.querySelector("span").textContent =
+      `ชิ้นที่เลือก (${selectedIds.size})`;
   const paperMatch = [...$("paper").options].find(
     (o) => o.value === `${p.width},${p.height}`,
   );
@@ -176,8 +287,38 @@ function syncForm() {
   $("selection").textContent = a
     ? `ชิ้นที่ ${selected + 1} / ${pg().items.length}`
     : "หน้านี้ยังไม่มีชิ้นงาน";
+  $("selectionCount").textContent = selectedIds.size
+    ? `เลือก ${selectedIds.size} จาก ${pg().items.length} ชิ้น`
+    : "ยังไม่ได้เลือกชิ้นงาน";
+  $("selection").textContent =
+    selectedIds.size > 1
+      ? `เลือก ${selectedIds.size} ชิ้น • ประเภทและขนาดใช้กับทุกชิ้นที่เลือก`
+      : $("selection").textContent;
+  $("designSelection").textContent =
+    selectedIds.size > 1
+      ? `กำลังแก้ไข ${selectedIds.size} ชิ้นพร้อมกัน • ทุกการปรับมีผลกับชิ้นที่เลือก`
+      : a
+        ? `กำลังแก้ไขชิ้นที่ ${selected + 1}`
+        : "คลิกชิ้นงานบนกระดาษเพื่อเริ่มแก้ไข";
+  for (const id of [
+    "batchRound",
+    "batchSquare",
+    "batchSticker",
+    "duplicateSelected",
+    "deleteSelected",
+    "duplicateItem",
+    "deleteItem",
+  ])
+    $(id).disabled = !selectedIds.size;
+  const types = new Set(selectedItems().map((a) => a.type));
+  $("type").querySelector('option[value="mixed"]')?.remove();
+  if (types.size > 1)
+    $("type").insertAdjacentHTML(
+      "afterbegin",
+      '<option value="mixed" disabled>หลายประเภท</option>',
+    );
   const design = a || newItem();
-  setValue("type", design.type);
+  setValue("type", types.size > 1 ? "mixed" : design.type);
   $("preset").innerHTML =
     presets[design.type]
       .map((n) => `<option value="${n}">${n} mm</option>`)
@@ -192,21 +333,24 @@ function syncForm() {
   dimValue("itemY", design.y);
   setValue("background", design.background);
   setValue("backgroundHex", design.background);
-  const im = design.image;
+  const im = design.image || selectedItems().find((a) => a.image)?.image;
   setValue("imageFit", im?.fit || "cover");
   setValue("imageScale", Number(((im?.scale || 1) * 100).toPrecision(12)));
   dimValue("imageX", im?.dx || 0);
   dimValue("imageY", im?.dy || 0);
   setValue("imageRotation", im?.rotation || 0);
-  $("textLayer").innerHTML = design.texts.length
-    ? design.texts
+  const textDesign = design.texts.length
+    ? design
+    : selectedItems().find((a) => a.texts.length) || design;
+  $("textLayer").innerHTML = textDesign.texts.length
+    ? textDesign.texts
         .map(
           (t, i) =>
             `<option value="${i}">${i + 1}. ${esc(t.text.slice(0, 25) || "(ข้อความว่าง)")}</option>`,
         )
         .join("")
     : '<option value="">ยังไม่มีข้อความ</option>';
-  setValue("textLayer", design.texts.length ? String(layerIndex) : "");
+  setValue("textLayer", textDesign.texts.length ? String(layerIndex) : "");
   const t = text();
   setValue("caption", t?.text || "");
   setValue("font", t?.font || "sans");
@@ -263,6 +407,11 @@ function syncForm() {
   $("redo").disabled = !redo.length;
   for (const [k, u] of Object.entries(inputUnits)) $(`${k}Unit`).value = u;
   syncStyle();
+  updatePresetButtons();
+  syncEditorControls();
+  positionControls?.sync();
+  pageControls?.sync(pg(), inputUnits.width || project.unit);
+  $("openBadgeEditor").disabled = !item();
 }
 function zoom() {
   const svg = $("sheet").querySelector("svg");
@@ -286,19 +435,63 @@ function zoom() {
 function render() {
   normalizeSelection();
   syncForm();
-  $("sheet").innerHTML = renderPage(project, pg(), { selected });
+  $("sheet").innerHTML = renderPage(project, pg(), {
+    selected,
+    selectedIds: [...selectedIds],
+  });
   zoom();
+  for (const button of document.querySelectorAll("[data-layout-mode]"))
+    button.setAttribute(
+      "aria-pressed",
+      String(button.dataset.layoutMode === (pg().layout.mode || "grid")),
+    );
   $("count").textContent =
     `${pg().items.length} ชิ้นในหน้านี้ • ${project.pages.length} หน้า`;
   const warnings = productionWarnings(project, pg());
   status(
-    warnings.length
-      ? `${warnings.slice(0, 4).join(" • ")}${warnings.length > 4 ? " …" : ""}`
-      : pg().items.length
-        ? "คลิกชิ้นงานเพื่อแก้ไข • เส้นช่วยออกแบบจะไม่ส่งออก เว้นแต่เปิดไว้"
-        : "เพิ่มชิ้นงาน หรือโหลดเทมเพลตเพื่อเริ่ม",
+    warnings.filter((w) => !w.includes("ทับกัน")).join(" • "),
     !!warnings.length,
   );
+  const spacing = spacingReport(pg());
+  $("spacingWarning").hidden = !spacing.crowded;
+  $("canvas").classList.toggle("has-spacing-warning", spacing.crowded);
+  $("spacingTitle").textContent = spacing.overlaps
+    ? "มีชิ้นงานทับกัน"
+    : spacing.close
+      ? "ชิ้นงานอยู่ชิดกันเกินไป"
+      : "ชิ้นงานแน่นเกินไป";
+  $("spacingDetails").textContent =
+    (spacing.overlaps
+      ? `พบการทับกัน ${spacing.overlaps} คู่ • `
+      : spacing.close
+        ? `มี ${spacing.close} คู่ที่ห่างกันน้อยกว่า 0.8 mm • `
+        : "พื้นที่ใช้งานเกิน 82% • ") +
+    "ควรลบบางชิ้น เพิ่มระยะห่าง หรือปรับการจัดวางเพื่อให้ผลิตได้เรียบร้อย";
+  const applied = allDesignsApplied(pg());
+  $("applyAll").setAttribute("aria-pressed", String(applied));
+  $("applyAll").querySelector("span").textContent = applied
+    ? "ใช้ดีไซน์ร่วมกันทั้งหน้าแล้ว"
+    : "ใช้ดีไซน์กับทุกชิ้นในหน้านี้";
+  templateManager?.paintEditing();
+}
+function previewPosition(id, value) {
+  if (!item()) return;
+  const page = clone(pg()),
+    mm = value * units[inputUnits[id] || project.unit];
+  const targets = page.items.filter((a) => selectedIds.has(a.id));
+  for (const a of targets) {
+    if (id === "itemX") a.x = Math.max(0, a.x + mm - item().x);
+    if (id === "itemY") a.y = Math.max(0, a.y + mm - item().y);
+    if (id === "imageX" && a.image) a.image.dx = mm;
+    if (id === "imageY" && a.image) a.image.dy = mm;
+    if (id === "textX" && a.texts[layerIndex]) a.texts[layerIndex].x = mm;
+    if (id === "textY" && a.texts[layerIndex]) a.texts[layerIndex].y = mm;
+  }
+  $("sheet").innerHTML = renderPage(project, page, {
+    selected,
+    selectedIds: [...selectedIds],
+  });
+  zoom();
 }
 function needItem() {
   if (!item()) {
@@ -339,7 +532,10 @@ function bindDim(ids, target) {
   for (const k of ids)
     on(k, "change", () =>
       transaction(() => {
-        target()[k] = dimRead(k);
+        const value = dimRead(k);
+        if (target === needItem && selectedIds.size)
+          for (const a of selectedItems()) a[k] = value;
+        else target()[k] = value;
       }),
     );
 }
@@ -362,7 +558,7 @@ on("projectName", "change", () =>
 );
 on("notes", "change", () =>
   transaction(() => {
-    needItem().notes = $("notes").value;
+    setBatchProperty(editItems(), "notes", $("notes").value);
   }),
 );
 for (const k of ["cols", "rows"])
@@ -371,23 +567,17 @@ for (const k of ["cols", "rows"])
       pg().layout[k] = Number($(k).value);
     }),
   );
-on("type", "change", () =>
-  transaction(() => {
-    const a = needItem();
-    a.type = $("type").value;
-    a.face = presets[a.type][0];
-    a.outer = a.face + (a.type === "round" ? 10 : 0);
-    a.safe = Math.min(a.safe, a.face / 2);
-  }),
-);
+on("type", "change", () => convertSelection($("type").value));
 on("preset", "change", () => {
   if ($("preset").value === "custom") return;
   transaction(() => {
-    const a = needItem(),
-      f = Number($("preset").value);
-    a.face = f;
-    a.outer = a.type === "round" ? { 57: 67, 58: 70, 59: 69 }[f] || f + 10 : f;
-    a.safe = Math.min(a.safe, f / 2);
+    const f = Number($("preset").value);
+    for (const a of selectedItems()) {
+      a.face = f;
+      a.outer =
+        a.type === "round" ? { 57: 67, 58: 70, 59: 69 }[f] || f + 10 : f;
+      a.safe = Math.min(a.safe, f / 2);
+    }
   });
 });
 on("paper", "change", () => {
@@ -415,6 +605,7 @@ on("fillGrid", "click", () => {
   transaction(() => {
     pg().items = gridItems(pg(), item() || newItem());
     selected = 0;
+    selectionPage = null;
   }, "จัดเต็มหน้าแล้ว");
 });
 on("pack", "click", () => transaction(() => packItems(pg())));
@@ -431,22 +622,46 @@ on("addItem", "click", () =>
     } catch {}
   }, "เพิ่มชิ้นงานแล้ว หากเกินพื้นที่ให้เพิ่มหน้าใหม่"),
 );
-on("duplicateItem", "click", () => {
-  $("addItem").click();
+on("duplicateItem", "click", duplicateSelection);
+on("deleteItem", "click", deleteSelection);
+on("duplicateSelected", "click", duplicateSelection);
+on("deleteSelected", "click", deleteSelection);
+for (const [button, type] of [
+  ["batchRound", "round"],
+  ["batchSquare", "square"],
+  ["batchSticker", "sticker"],
+])
+  on(button, "click", () => convertSelection(type));
+on("selectAll", "click", () => {
+  selectItems(pg().items.map((_, i) => i));
+  render();
 });
-on("deleteItem", "click", () =>
-  transaction(() => {
-    if (item()) pg().items.splice(selected, 1);
-  }),
+on("clearSelection", "click", () => {
+  selectItems([]);
+  render();
+});
+for (const button of document.querySelectorAll("[data-layout-mode]"))
+  button.addEventListener("click", () =>
+    transaction(() => {
+      pg().layout.mode = button.dataset.layoutMode;
+    }, "เลือกรูปแบบแล้ว • กดจัดเรียงอัตโนมัติเพื่อนำไปใช้"),
+  );
+on("autoArrange", "click", () =>
+  transaction(
+    () => packItems(pg()),
+    "จัดเรียงชิ้นงานทั้งหมดแล้ว • คงขนาดและดีไซน์เดิม",
+  ),
 );
 on("itemX", "change", () =>
   transaction(() => {
-    needItem().x = dimRead("itemX");
+    const dx = dimRead("itemX") - needItem().x;
+    for (const a of editItems()) a.x = Math.max(0, a.x + dx);
   }),
 );
 on("itemY", "change", () =>
   transaction(() => {
-    needItem().y = dimRead("itemY");
+    const dy = dimRead("itemY") - needItem().y;
+    for (const a of editItems()) a.y = Math.max(0, a.y + dy);
   }),
 );
 on("undo", "click", () => {
@@ -465,17 +680,43 @@ on("redo", "click", () => {
 });
 document.addEventListener("keydown", (e) => {
   if (
-    (e.ctrlKey || e.metaKey) &&
-    e.key.toLowerCase() === "z" &&
-    !e.target.matches("input,textarea")
-  ) {
+    e.target.closest('input,textarea,select,[contenteditable="true"]') ||
+    document.querySelector("dialog[open]") ||
+    e.isComposing
+  )
+    return;
+  const mod = e.ctrlKey || e.metaKey;
+  let action;
+  if (mod && e.code === "KeyZ")
+    action = () => $(e.shiftKey ? "redo" : "undo").click();
+  else if (mod && e.code === "KeyD") action = duplicateSelection;
+  else if (mod && e.shiftKey && e.code === "KeyS")
+    action = () => convertSelection("square");
+  else if (mod && e.shiftKey && e.code === "KeyC")
+    action = () => convertSelection("round");
+  else if (mod && e.code === "KeyA")
+    action = () => {
+      selectItems(pg().items.map((_, i) => i));
+      render();
+    };
+  else if (mod && e.shiftKey && e.key === "Delete")
+    action = clearSelectedImages;
+  else if (e.key === "Delete" || e.key === "Backspace")
+    action = deleteSelection;
+  else if (e.key === "Escape")
+    action = () => {
+      selectItems([]);
+      render();
+    };
+  if (action) {
     e.preventDefault();
-    $(e.shiftKey ? "redo" : "undo").click();
+    if (!e.repeat) action();
   }
 });
 on("pageSelect", "change", () => {
   pageIndex = Number($("pageSelect").value);
   selected = 0;
+  selectionPage = null;
   layerIndex = 0;
   render();
 });
@@ -483,6 +724,7 @@ on("prevPage", "click", () => {
   if (pageIndex > 0) {
     pageIndex--;
     selected = 0;
+    selectionPage = null;
     render();
   }
 });
@@ -490,6 +732,7 @@ on("nextPage", "click", () => {
   if (pageIndex < project.pages.length - 1) {
     pageIndex++;
     selected = 0;
+    selectionPage = null;
     render();
   }
 });
@@ -501,6 +744,7 @@ on("addPage", "click", () =>
     project.pages.push(p);
     pageIndex = project.pages.length - 1;
     selected = 0;
+    selectionPage = null;
   }),
 );
 on("duplicatePage", "click", () =>
@@ -511,6 +755,7 @@ on("duplicatePage", "click", () =>
     project.pages.splice(pageIndex + 1, 0, p);
     pageIndex++;
     selected = 0;
+    selectionPage = null;
   }),
 );
 on("deletePage", "click", () => {
@@ -518,68 +763,173 @@ on("deletePage", "click", () => {
     transaction(() => {
       project.pages.splice(pageIndex, 1);
       selected = 0;
+      selectionPage = null;
     });
 });
 on("zoom", "change", zoom);
 window.addEventListener("resize", zoom);
 new ResizeObserver(zoom).observe($("canvas"));
 document.fonts.ready.then(zoom);
-on("sheet", "click", (e) => {
-  const g = e.target.closest("[data-slot]");
-  if (!g) return;
-  selected = Number(g.dataset.slot);
-  layerIndex = 0;
-  render();
-});
 on("sheet", "keydown", (e) => {
   const g = e.target.closest("[data-slot]");
   if (g && ["Enter", " "].includes(e.key)) {
     e.preventDefault();
-    selected = Number(g.dataset.slot);
-    layerIndex = 0;
+    chooseItem(Number(g.dataset.slot), e.shiftKey);
+    render();
+    $("sheet").querySelector(`[data-slot="${g.dataset.slot}"]`)?.focus();
+  }
+});
+let gesture;
+const marquee = document.createElement("div");
+marquee.className = "selection-marquee";
+marquee.hidden = true;
+document.body.append(marquee);
+function canvasPoint(x, y) {
+  return new DOMPoint(x, y).matrixTransform(
+    $("sheet").querySelector("svg").getScreenCTM().inverse(),
+  );
+}
+$("canvas").addEventListener("pointerdown", (e) => {
+  if (
+    e.button !== 0 ||
+    e.target.closest("button,input,select") ||
+    (e.pointerType === "touch" && !e.target.closest("[data-slot]"))
+  )
+    return;
+  const g = e.target.closest("[data-slot]");
+  const index = g ? Number(g.dataset.slot) : null;
+  const move = $("moveMode").checked && index !== null && !e.shiftKey;
+  if (move && !selectedIds.has(pg().items[index].id)) {
+    chooseItem(index);
+    render();
+  }
+  gesture = {
+    pointer: e.pointerId,
+    x: e.clientX,
+    y: e.clientY,
+    index,
+    add: e.shiftKey,
+    move,
+    initial: new Set(selectedIds),
+    start: canvasPoint(e.clientX, e.clientY),
+    positions: selectedItems().map((a) => ({ id: a.id, x: a.x, y: a.y })),
+    moved: false,
+  };
+  $("canvas").setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+$("canvas").addEventListener("pointermove", (e) => {
+  if (!gesture || gesture.pointer !== e.pointerId) return;
+  const d = gesture;
+  d.moved ||= Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4;
+  if (!d.moved) return;
+  if (d.move) {
+    const p = canvasPoint(e.clientX, e.clientY);
+    d.dx = p.x - d.start.x;
+    d.dy = p.y - d.start.y;
+    for (const a of d.positions) {
+      const i = pg().items.findIndex((v) => v.id === a.id);
+      $("sheet")
+        .querySelector(`[data-slot="${i}"]`)
+        ?.setAttribute("transform", `translate(${a.x + d.dx} ${a.y + d.dy})`);
+    }
+  } else {
+    const x = Math.min(d.x, e.clientX),
+      y = Math.min(d.y, e.clientY),
+      w = Math.abs(e.clientX - d.x),
+      h = Math.abs(e.clientY - d.y);
+    Object.assign(marquee.style, {
+      left: x + "px",
+      top: y + "px",
+      width: w + "px",
+      height: h + "px",
+    });
+    marquee.hidden = false;
+    const a = canvasPoint(x, y),
+      b = canvasPoint(x + w, y + h);
+    selectedIds = new Set(d.add ? d.initial : []);
+    pg().items.forEach((item) => {
+      if (
+        item.x <= b.x &&
+        item.x + item.outer >= a.x &&
+        item.y <= b.y &&
+        item.y + item.outer >= a.y
+      )
+        selectedIds.add(item.id);
+    });
+    selected = pg().items.findIndex((a) => selectedIds.has(a.id));
     render();
   }
 });
-let drag;
-on("sheet", "pointerdown", (e) => {
-  if (!$("moveMode").checked) return;
-  const g = e.target.closest("[data-slot]");
-  if (!g) return;
-  e.preventDefault();
-  const svg = $("sheet").querySelector("svg"),
-    pos = new DOMPoint(e.clientX, e.clientY).matrixTransform(
-      svg.getScreenCTM().inverse(),
-    );
-  selected = Number(g.dataset.slot);
-  const a = item();
-  drag = { g, svg, start: pos, x: a.x, y: a.y, dx: 0, dy: 0 };
-});
-document.addEventListener("pointermove", (e) => {
-  if (!drag) return;
-  const pos = new DOMPoint(e.clientX, e.clientY).matrixTransform(
-    drag.svg.getScreenCTM().inverse(),
-  );
-  drag.dx = Math.max(-drag.x, pos.x - drag.start.x);
-  drag.dy = Math.max(-drag.y, pos.y - drag.start.y);
-  drag.g.setAttribute(
-    "transform",
-    `translate(${drag.x + drag.dx} ${drag.y + drag.dy})`,
-  );
-});
-document.addEventListener("pointerup", () => {
-  if (!drag) return;
-  const d = drag;
-  drag = null;
-  if (Math.abs(d.dx) + Math.abs(d.dy) > 0.2)
+function endGesture(e, cancel = false) {
+  if (!gesture || gesture.pointer !== e.pointerId) return;
+  const d = gesture;
+  gesture = null;
+  marquee.hidden = true;
+  if ($("canvas").hasPointerCapture(e.pointerId))
+    $("canvas").releasePointerCapture(e.pointerId);
+  if (cancel) {
+    selectedIds = d.initial;
+    selected = pg().items.findIndex((a) => selectedIds.has(a.id));
+    render();
+    return;
+  }
+  if (d.moved && d.move)
     transaction(() => {
-      item().x = d.x + d.dx;
-      item().y = d.y + d.dy;
+      for (const pos of d.positions) {
+        const a = pg().items.find((a) => a.id === pos.id);
+        a.x = Math.max(0, pos.x + d.dx);
+        a.y = Math.max(0, pos.y + d.dy);
+      }
     });
-  else render();
-});
+  else if (!d.moved) {
+    if (d.index !== null) chooseItem(d.index, d.add);
+    else if (!d.add) selectItems([]);
+    render();
+  }
+}
+$("canvas").addEventListener("pointerup", (e) => endGesture(e));
+$("canvas").addEventListener("pointercancel", (e) => endGesture(e, true));
+$("canvas").addEventListener(
+  "wheel",
+  (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const canvas = $("canvas"),
+      before = $("sheetWrap").getBoundingClientRect();
+    const old =
+      $("sheet").getBoundingClientRect().width /
+      ((pg().paper.width * 96) / 25.4);
+    const scale = Math.max(
+      0.1,
+      Math.min(
+        4,
+        old * Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.035 : 0.002)),
+      ),
+    );
+    let option = $("zoom").querySelector("[data-wheel-zoom]");
+    if (!option) {
+      option = document.createElement("option");
+      option.dataset.wheelZoom = "true";
+      $("zoom").append(option);
+    }
+    option.value = String(scale);
+    option.textContent = `${Math.round(scale * 100)}%`;
+    $("zoom").value = option.value;
+    const x = (e.clientX - before.left) / old,
+      y = (e.clientY - before.top) / old;
+    zoom();
+    const after = $("sheetWrap").getBoundingClientRect();
+    canvas.scrollLeft += after.left + x * scale - e.clientX;
+    canvas.scrollTop += after.top + y * scale - e.clientY;
+  },
+  { passive: false },
+);
 async function importImages(files) {
   const accepted = [...files];
   if (!accepted.length) return;
+  const importPage = pg().id,
+    importSelection = [...selectedIds].join(",");
   const loaded = [];
   for (const file of accepted) {
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type))
@@ -604,7 +954,30 @@ async function importImages(files) {
       height: image.naturalHeight,
     });
   }
+  if (pg().id !== importPage || [...selectedIds].join(",") !== importSelection)
+    throw Error("การเลือกชิ้นงานเปลี่ยนระหว่างโหลดรูป กรุณาเลือกไฟล์อีกครั้ง");
   transaction(() => {
+    if (selectedIds.size) {
+      const assets = loaded.map((data) => {
+        const key = id();
+        project.assets[key] = data;
+        return key;
+      });
+      selectedItems().forEach((a, i) => {
+        a.image = {
+          asset: assets[i % assets.length],
+          scale: 1,
+          dx: 0,
+          dy: 0,
+          rotation: 0,
+          fit: "cover",
+        };
+      });
+      return;
+    }
+    if (selected < 0) {
+      needItem();
+    }
     const base = clone(item() || newItem());
     let targetPage = pageIndex,
       targetIndex = selected;
@@ -652,11 +1025,7 @@ on("canvas", "drop", async (e) => {
   e.preventDefault();
   await importImages(e.dataTransfer.files);
 });
-on("clearImage", "click", () =>
-  transaction(() => {
-    if (item()) item().image = null;
-  }),
-);
+on("clearImage", "click", clearSelectedImages);
 for (const [field, key, read] of [
   ["imageFit", "fit", () => $("imageFit").value],
   ["imageScale", "scale", () => Number($("imageScale").value) / 100],
@@ -666,34 +1035,34 @@ for (const [field, key, read] of [
 ])
   on(field, "change", () =>
     transaction(() => {
-      if (item()?.image) item().image[key] = read();
+      const value = read();
+      const source = clone(
+        item()?.image || selectedItems().find((a) => a.image)?.image,
+      );
+      for (const a of editItems()) {
+        if (!a.image && source) a.image = clone(source);
+        if (a.image) a.image[key] = value;
+      }
     }),
   );
 for (const field of ["background", "backgroundHex"])
   on(field, "change", () =>
     transaction(() => {
-      needItem().background = parseColor($(field).value);
+      setBatchProperty(editItems(), "background", parseColor($(field).value));
     }),
   );
 on("addText", "click", () =>
   transaction(() => {
-    const a = needItem();
-    a.texts.push({
-      text: "ข้อความใหม่",
-      size: 5,
-      x: a.outer / 2,
-      y: a.outer * 0.7,
-      color: "#172033",
-      font: "sans",
-      weight: "normal",
-      rotation: 0,
-    });
-    layerIndex = a.texts.length - 1;
+    const targets = editItems();
+    const index = Math.max(...targets.map((a) => a.texts.length));
+    for (const a of targets) ensureTextLayer(a, index);
+    layerIndex = index;
   }),
 );
 on("deleteText", "click", () =>
   transaction(() => {
-    if (text()) item().texts.splice(layerIndex, 1);
+    for (const a of editItems())
+      if (a.texts[layerIndex]) a.texts.splice(layerIndex, 1);
   }),
 );
 on("textLayer", "change", () => {
@@ -702,11 +1071,9 @@ on("textLayer", "change", () => {
 });
 on("textFront", "click", () =>
   transaction(() => {
-    if (text()) {
-      const t = item().texts.splice(layerIndex, 1)[0];
-      item().texts.push(t);
-      layerIndex = item().texts.length - 1;
-    }
+    for (const a of editItems())
+      if (a.texts[layerIndex]) a.texts.push(a.texts.splice(layerIndex, 1)[0]);
+    layerIndex = Math.max(0, (item()?.texts.length || 1) - 1);
   }),
 );
 for (const [field, key, read] of [
@@ -722,11 +1089,25 @@ for (const [field, key, read] of [
 ])
   on(field, "change", () =>
     transaction(() => {
-      if (text()) text()[key] = read();
+      const value = read(),
+        source = clone(text()),
+        sourceOuter = item()?.outer;
+      for (const a of editItems()) {
+        const layer =
+          a.texts[layerIndex] ||
+          ensureTextLayer(a, layerIndex, source, sourceOuter);
+        layer[key] = value;
+      }
     }),
   );
 on("applyAll", "click", () => {
   if (!item()) return;
+  if (allDesignsApplied(pg())) {
+    transaction(() => {
+      pg().designApplied = false;
+    }, "ปิดสถานะดีไซน์ร่วมแล้ว การแก้ไขต่อไปใช้กับชิ้นที่เลือก");
+    return;
+  }
   if (
     !confirm(
       "ใช้รูป ข้อความ และสีของชิ้นที่เลือกกับทุกชิ้นในหน้านี้? ตำแหน่งและขนาดแต่ละชิ้นจะคงเดิม",
@@ -735,6 +1116,7 @@ on("applyAll", "click", () => {
     return;
   transaction(() => {
     const source = clone(item());
+    pg().designApplied = true;
     for (const a of pg().items) {
       a.background = source.background;
       a.image = clone(source.image);
@@ -838,18 +1220,15 @@ on("saveLayout", "click", async () => {
   await refreshLayouts();
   status("บันทึกเลย์เอาต์ในเบราว์เซอร์แล้ว");
 });
-on("loadLayout", "click", () => {
-  if ($("layouts").value === "") throw Error("กรุณาเลือกเลย์เอาต์");
-  const saved = layoutRecords[Number($("layouts").value)].value.page,
-    target = $("layoutTarget").value;
+function applyStoredLayout(saved, target, palette = null) {
   if (
     target === "current" &&
     !confirm(
       "แทนการจัดวางหน้าปัจจุบันด้วยเลย์เอาต์นี้? ขนาดกระดาษจะเปลี่ยนตามที่บันทึก",
     )
   )
-    return;
-  transaction(() => {
+    return false;
+  return transaction(() => {
     const p = clone(saved);
     p.id = id();
     for (const a of p.items) a.id = id();
@@ -867,8 +1246,25 @@ on("loadLayout", "click", () => {
       });
       project.pages[pageIndex] = p;
     }
+    if (palette) {
+      for (const a of pg().items) {
+        a.background = palette.background;
+        for (const t of a.texts) t.color = palette.text;
+      }
+      project.styles.cut.color = palette.line;
+    }
     selected = 0;
+    selectionPage = null;
   }, "โหลดเลย์เอาต์แล้ว ไม่มีการย่อขนาดชิ้นงาน");
+}
+on("loadLayout", "click", () => {
+  if ($("layouts").value === "") throw Error("กรุณาเลือกเลย์เอาต์");
+  const record = layoutRecords[Number($("layouts").value)].value;
+  return applyStoredLayout(
+    record.page,
+    $("layoutTarget").value,
+    record.palette,
+  );
 });
 const ready = [
   {
@@ -958,90 +1354,81 @@ const designs = [
     font: "sans",
   },
 ];
+templateManager = createTemplateManager({
+  getProject: () => project,
+  getPage: pg,
+  switchProject,
+  refreshLayouts,
+  status,
+  ready,
+  designs,
+  onMetadataChange: (name, delta) =>
+    transaction(() => {
+      project.name = name;
+      for (const page of project.pages)
+        for (const a of page.items) {
+          if (delta.background) a.background = delta.background;
+          if (delta.text) for (const t of a.texts) t.color = delta.text;
+        }
+      if (delta.line) project.styles.cut.color = delta.line;
+    }),
+  applyLayout: (record) =>
+    applyStoredLayout(
+      record.value.page,
+      $("layoutTarget").value,
+      record.value.palette,
+    ),
+  onWorkspaceChange: (kind) => {
+    revealControl(kind === "design" ? "image" : "paper");
+    document.querySelector(".workspace").scrollIntoView({ block: "nearest" });
+  },
+  applyDesign: (source, assets) =>
+    transaction(() => {
+      for (const [key, asset] of Object.entries(assets))
+        project.assets[key] = clone(asset);
+      for (const a of editItems()) {
+        a.background = source.background;
+        a.image = clone(source.image);
+        a.texts = source.texts.map((t) => ({
+          ...clone(t),
+          x: (t.x * a.outer) / source.outer,
+          y: (t.y * a.outer) / source.outer,
+        }));
+      }
+    }, "ใช้ดีไซน์กับชิ้นที่เลือกแล้ว"),
+});
 async function library() {
-  const list = await store.list("template:");
-  $("readyTemplates").innerHTML =
-    ready
-      .map(
-        (r, i) =>
-          `<div class="card"><strong>${esc(r.title)}</strong><p>${r.category}</p><button data-ready="${i}">เริ่มงานขนาดนี้</button></div>`,
-      )
-      .join("") +
-    designs
-      .map(
-        (d, i) =>
-          `<div class="card" style="border-top:4px solid ${d.color}"><strong>${d.title}</strong><p>ดีไซน์พร้อมใช้ แก้ไขข้อความต่อได้</p><button data-design="${i}">ใช้กับชิ้นที่เลือก</button></div>`,
-      )
-      .join("");
-  $("customTemplates").innerHTML = list.length
-    ? list
-        .map(
-          (r, i) =>
-            `<div class="card"><strong>${esc(r.value.name)}</strong><p>${r.value.pages.length} หน้า</p><button data-custom="${i}">เปิดเทมเพลต</button><button data-remove-template="${i}">ลบ</button></div>`,
-        )
-        .join("")
-    : '<p class="muted">ยังไม่มีเทมเพลตส่วนตัว</p>';
-  for (const b of $("readyTemplates").querySelectorAll("[data-ready]"))
-    b.onclick = () => {
-      if (!confirm("เริ่มโปรเจกต์จากเทมเพลตนี้? งานเดิมย้อนกลับได้")) return;
-      const r = ready[Number(b.dataset.ready)],
-        p = newProject();
-      p.name = r.title;
-      p.pages[0].items = gridItems(
-        p.pages[0],
-        newItem(r.type, r.face, r.outer),
-      );
-      switchProject(p);
-      $("libraryDialog").close();
-    };
-  for (const b of $("readyTemplates").querySelectorAll("[data-design]"))
-    b.onclick = () => {
-      const d = designs[Number(b.dataset.design)];
-      transaction(() => {
-        const a = needItem();
-        a.background = d.background;
-        a.texts = [
-          {
-            text: d.text,
-            size: 4,
-            x: a.outer / 2,
-            y: a.outer * 0.55,
-            color: d.color,
-            font: d.font,
-            weight: "normal",
-            rotation: 0,
-          },
-        ];
-        layerIndex = 0;
-      });
-      $("libraryDialog").close();
-    };
-  for (const b of $("customTemplates").querySelectorAll("[data-custom]"))
-    b.onclick = () => {
-      if (confirm("เปิดเทมเพลตแทนโปรเจกต์ปัจจุบัน?")) {
-        switchProject(list[Number(b.dataset.custom)].value);
-        $("libraryDialog").close();
-      }
-    };
-  for (const b of $("customTemplates").querySelectorAll(
-    "[data-remove-template]",
-  ))
-    b.onclick = async () => {
-      if (confirm("ลบเทมเพลตนี้?")) {
-        await store.remove(list[Number(b.dataset.removeTemplate)].key);
-        await library();
-      }
-    };
-  $("libraryDialog").showModal();
+  await templateManager.show();
 }
 on("library", "click", library);
-on("saveTemplate", "click", async () => {
-  const name = prompt("ชื่อเทมเพลต", project.name);
-  if (!name?.trim()) return;
-  const saved = clone(project);
-  saved.name = name.trim();
-  await store.put("template:" + id(), saved);
-  status("บันทึกเทมเพลตส่วนตัวแล้ว เปิดได้จากปุ่มเทมเพลตด้านบน");
+on("saveTemplate", "click", () => {
+  $("templateName").value = project.name;
+  $("templateSaveStatus").textContent = "";
+  $("templateSaveDialog").showModal();
+  $("templateName").focus();
+});
+on("templateSaveForm", "submit", async (e) => {
+  e.preventDefault();
+  const name = $("templateName").value.trim();
+  if (!name) {
+    $("templateSaveStatus").textContent = "กรุณาตั้งชื่อเทมเพลต";
+    return;
+  }
+  $("confirmSaveTemplate").disabled = true;
+  try {
+    const saved = clone(project);
+    saved.name = name;
+    await store.put("template:" + id(), saved);
+    $("templateSaveDialog").close();
+    await library();
+    $("libraryStatus").textContent =
+      `บันทึก “${name}” แล้ว • อยู่ในเทมเพลตของฉันด้านล่าง`;
+    $("customTemplates").scrollIntoView({ block: "nearest" });
+  } catch (e) {
+    $("templateSaveStatus").textContent = "บันทึกไม่สำเร็จ: " + e.message;
+  } finally {
+    $("confirmSaveTemplate").disabled = false;
+  }
 });
 on("help", "click", () => $("helpDialog").showModal());
 on("bulk", "click", () => $("bulkDialog").showModal());
@@ -1113,6 +1500,7 @@ on("applyBulk", "click", () => {
     }
     pageIndex = project.pages.length - 1;
     selected = 0;
+    selectionPage = null;
   }, `สร้างงาน ${rows.length} ชิ้นแล้ว`);
   $("bulkDialog").close();
 });
@@ -1292,5 +1680,111 @@ if (
     );
   }
 }
+initEditorControls();
+positionControls = createPositionControls({
+  getPage: pg,
+  getItem: item,
+  getUnit: (id) => units[inputUnits[id] || project.unit],
+  preview: previewPosition,
+  restore: render,
+});
+pageControls = configurePageControls({
+  setUnit: (unit) => {
+    for (const id of [
+      "width",
+      "height",
+      "top",
+      "bottom",
+      "left",
+      "right",
+      "gapX",
+      "gapY",
+    ])
+      inputUnits[id] = unit;
+    syncForm();
+  },
+  onOrientation: (orientation) => {
+    if (pg().paper.width <= pg().paper.height !== (orientation === "portrait"))
+      $("rotate").click();
+  },
+  onCenter: () =>
+    transaction(() => {
+      if (!pg().items.length) return;
+      const p = pg().paper,
+        minX = Math.min(...pg().items.map((a) => a.x)),
+        minY = Math.min(...pg().items.map((a) => a.y)),
+        maxX = Math.max(...pg().items.map((a) => a.x + a.outer)),
+        maxY = Math.max(...pg().items.map((a) => a.y + a.outer));
+      if (
+        maxX - minX > p.width - p.left - p.right ||
+        maxY - minY > p.height - p.top - p.bottom
+      )
+        throw Error("ชิ้นงานไม่พอดีพื้นที่ กรุณาจัดเรียงหรือลบบางชิ้นก่อน");
+      for (const a of pg().items) {
+        a.x += p.left + (p.width - p.left - p.right - (maxX - minX)) / 2 - minX;
+        a.y += p.top + (p.height - p.top - p.bottom - (maxY - minY)) / 2 - minY;
+      }
+    }, "จัดชิ้นงานให้อยู่กลางหน้าแล้ว"),
+});
+badgeEditor = createBadgeEditor({
+  getProject: () => project,
+  getItem: item,
+  getSelectionCount: () => selectedIds.size,
+  onSave: (draft, assets, styles) => {
+    if (
+      !transaction(() => {
+        if (draft.image)
+          project.assets[draft.image.asset] = clone(assets[draft.image.asset]);
+        project.styles = styles;
+        for (const a of editItems()) {
+          a.background = draft.background;
+          a.image = clone(draft.image);
+          a.texts = draft.texts.map((t) => ({
+            ...clone(t),
+            x: (t.x * a.outer) / draft.outer,
+            y: (t.y * a.outer) / draft.outer,
+          }));
+          if (a.image) {
+            a.image.dx *= a.outer / draft.outer;
+            a.image.dy *= a.outer / draft.outer;
+          }
+        }
+      }, "บันทึกดีไซน์ให้ชิ้นที่เลือกแล้ว")
+    )
+      throw Error("บันทึกไม่สำเร็จ กรุณาตรวจค่าที่ปรับ");
+  },
+});
+on("openBadgeEditor", "click", () => badgeEditor.open());
+on("fixSpacing", "click", () => $("autoArrange").click());
+for (const [gallery, kind] of [
+  ["designGallery", "design"],
+  ["layoutGallery", "layout"],
+]) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "wide";
+  button.id = "create" + (kind === "design" ? "Design" : "Layout") + "Template";
+  button.textContent =
+    kind === "design"
+      ? "บันทึกงานปัจจุบันเป็นดีไซน์ใหม่"
+      : "บันทึกการจัดวางปัจจุบัน";
+  button.addEventListener("click", () => templateManager.openCreate(kind));
+  $(gallery).prepend(button);
+}
 for (const k of Object.keys(inputUnits)) inputUnits[k] = project.unit;
 render();
+
+// Keep section shortcuts usable when a settings group is collapsed.
+for (const link of document.querySelectorAll(".workspace-nav a")) {
+  link.addEventListener("click", (event) => {
+    const target = document.querySelector(link.getAttribute("href"));
+    if (!target) return;
+    event.preventDefault();
+    if (target instanceof HTMLDetailsElement) target.open = true;
+    const control = target.querySelector("summary, input, select, button");
+    target.scrollIntoView({ block: "start" });
+    control?.focus({ preventScroll: true });
+  });
+}
+
+on("closeTemplateSave", "click", () => $("templateSaveDialog").close());
