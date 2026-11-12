@@ -1,3 +1,5 @@
+import { units } from "./geometry.js";
+import { icon } from "./ui-icons.js";
 import { clone, id } from "./model.js";
 import { renderPage } from "./render.js";
 import { defaultText } from "./batch.js";
@@ -6,6 +8,8 @@ export function createBadgeEditor({
   getProject,
   getItem,
   getSelectionCount,
+  getTemplates,
+  getEditingContext,
   onSave,
 }) {
   const modal = document.createElement("dialog");
@@ -16,9 +20,90 @@ export function createBadgeEditor({
 <div class="badge-editor-body"><section class="badge-preview-panel" aria-label="แคนวาสแก้ไขภาพ"><div class="badge-preview-toolbar"><button type="button" id="badgeUndo" aria-label="ย้อนกลับในตัวแก้ไข">ย้อนกลับ</button><button type="button" id="badgeRedo" aria-label="ทำซ้ำในตัวแก้ไข">ทำซ้ำ</button><button type="button" id="badgeCenter">จัดภาพกึ่งกลาง</button></div><div id="badgeStage" tabindex="0" aria-label="ลากภาพเพื่อปรับตำแหน่ง เลื่อนเมาส์เพื่อซูมภาพ"><div id="badgePreview"></div></div><p class="hint">ลากภาพเพื่อเลื่อนตำแหน่ง • เลื่อนเมาส์เพื่อย่อ–ขยาย • รองรับการวางไฟล์ภาพ</p></section>
 <section class="badge-inspector"><div class="panel-tabs" role="tablist" aria-label="เครื่องมือดีไซน์"><button type="button" id="badgeImageTab" role="tab" aria-selected="true" aria-controls="badgeImagePanel">รูปภาพ</button><button type="button" id="badgeTextTab" role="tab" aria-selected="false" aria-controls="badgeTextPanel" tabindex="-1">ข้อความ</button><button type="button" id="badgeColorTab" role="tab" aria-selected="false" aria-controls="badgeColorPanel" tabindex="-1">สีและเส้น</button></div>
 <div id="badgeImagePanel" role="tabpanel" aria-labelledby="badgeImageTab"><label class="badge-upload">เปลี่ยน / เพิ่มภาพ<input type="file" id="badgeImageFile" accept="image/png,image/jpeg,image/webp" /></label><p id="badgeImageInfo" class="hint"></p><div class="badge-adjustment"><label for="badgeScale">ขยายภาพ</label><input type="range" id="badgeScale" min="1" max="400" step="1" /><input type="number" id="badgeScaleNumber" min="1" max="2000" aria-label="ขยายภาพ เปอร์เซ็นต์" /><span>%</span></div><div class="badge-adjustment"><label for="badgeRotation">หมุนภาพ</label><input type="range" id="badgeRotation" min="-180" max="180" step=".1" /><input type="number" id="badgeRotationNumber" step=".1" aria-label="หมุนภาพ องศา" /><span>°</span></div><label>การวางภาพ<select id="badgeFit"><option value="cover">เต็มพื้นที่ / ครอบส่วนเกิน</option><option value="contain">เห็นภาพทั้งหมด</option></select></label><div class="badge-position-pair"><label>ตำแหน่ง X <output id="badgeXValue"></output><input type="range" id="badgeX" step=".1" /></label><label>ตำแหน่ง Y <output id="badgeYValue"></output><input type="range" id="badgeY" step=".1" class="vertical-range" aria-orientation="vertical" /></label></div></div>
-<div id="badgeTextPanel" role="tabpanel" aria-labelledby="badgeTextTab" hidden><label>เลเยอร์ข้อความ<select id="badgeTextLayer"></select></label><div class="pair"><button id="badgeAddText" type="button">เพิ่มข้อความ</button><button id="badgeDeleteText" type="button">ลบข้อความ</button></div><label>ข้อความ<textarea id="badgeCaption" rows="4"></textarea></label><label>ขนาดข้อความ (mm)<input type="number" id="badgeTextSize" min=".1" step=".1" /></label><label>สีข้อความ<input type="color" id="badgeTextColor" /></label><label>แนวนอน X<input type="range" id="badgeTextX" min="0" step=".1" /></label><label>แนวตั้ง Y<input type="range" id="badgeTextY" min="0" step=".1" /></label></div>
+<div id="badgeTextPanel" role="tabpanel" aria-labelledby="badgeTextTab" hidden><label>เลเยอร์ข้อความ<select id="badgeTextLayer"></select></label><div class="pair"><button id="badgeAddText" type="button">เพิ่มข้อความ</button><button id="badgeDeleteText" type="button">ลบข้อความ</button></div><label>ข้อความ<textarea id="badgeCaption" rows="4"></textarea></label><label><span id="badgeTextSizeLabel">ขนาดข้อความ (mm)</span><input type="number" id="badgeTextSize" min=".1" step=".1" /></label><label>สีข้อความ<input type="color" id="badgeTextColor" /></label><label>แนวนอน X<input type="range" id="badgeTextX" min="0" step=".1" /></label><label>แนวตั้ง Y<input type="range" id="badgeTextY" min="0" step=".1" /></label></div>
 <div id="badgeColorPanel" role="tabpanel" aria-labelledby="badgeColorTab" hidden><label>สีพื้นชิ้นงาน<input type="color" id="badgeBackground" /></label><h3>เส้นช่วยออกแบบ</h3><label class="check"><input type="checkbox" id="badgeCutGuide" /> เส้นตัดรอบนอก</label><label class="check"><input type="checkbox" id="badgeFaceGuide" /> หน้าชิ้นงาน</label><label class="check"><input type="checkbox" id="badgeSafeGuide" /> พื้นที่ปลอดภัย</label><p class="hint">เส้นช่วยออกแบบใช้ค่าการแสดงผลของโปรเจกต์ การส่งออกยังเป็นไปตามตัวเลือกเดิม</p></div></section></div>
 <div class="badge-editor-footer"><p id="badgeEditorStatus" role="status"></p><button id="resetBadgeDraft" type="button">เริ่มปรับใหม่</button><button id="cancelBadgeDraft" type="button">ยกเลิก</button><button id="saveBadgeDraft" type="button" class="primary">บันทึกและปิด</button></div>`;
+  const rail = modal.querySelector('[role="tablist"]');
+  rail.classList.add("badge-toolrail");
+  const templateTab = document.createElement("button");
+  templateTab.id = "badgeTemplateTab";
+  templateTab.type = "button";
+  templateTab.setAttribute("role", "tab");
+  templateTab.setAttribute("aria-selected", "false");
+  templateTab.setAttribute("aria-controls", "badgeTemplatePanel");
+  templateTab.tabIndex = -1;
+  templateTab.textContent = "เทมเพลต";
+  rail.prepend(templateTab);
+  const layerTab = document.createElement("button");
+  layerTab.id = "badgeLayersTab";
+  layerTab.type = "button";
+  layerTab.setAttribute("role", "tab");
+  layerTab.setAttribute("aria-selected", "false");
+  layerTab.setAttribute("aria-controls", "badgeLayersPanel");
+  layerTab.tabIndex = -1;
+  layerTab.textContent = "เลเยอร์";
+  rail.append(layerTab);
+  modal.querySelector(".badge-editor-body").prepend(rail);
+  modal
+    .querySelector(".badge-inspector")
+    .insertAdjacentHTML(
+      "beforeend",
+      '<div id="badgeTemplatePanel" role="tabpanel" aria-labelledby="badgeTemplateTab" hidden><p class="hint">เลือกดีไซน์ที่เคยบันทึกเพื่อใช้เป็นต้นแบบ การเปลี่ยนแปลงยังไม่บันทึกจนกดบันทึกและปิด</p><p id="badgeTemplateStatus" role="status"></p><div id="badgeDesignTemplates" class="designer-templates"></div></div><div id="badgeLayersPanel" role="tabpanel" aria-labelledby="badgeLayersTab" hidden><p class="hint">ข้อความด้านบนของรายการอยู่ด้านหน้าชิ้นงาน ปรับลำดับได้โดยไม่เปลี่ยนตำแหน่ง</p><div id="badgeLayerList"></div></div>',
+    );
+  const inspectorTitle = document.createElement("h3");
+  inspectorTitle.id = "badgeInspectorTitle";
+  modal.querySelector(".badge-inspector").prepend(inspectorTitle);
+  for (const [id, name] of [
+    ["badgeTemplateTab", "template"],
+    ["badgeImageTab", "image"],
+    ["badgeTextTab", "text"],
+    ["badgeColorTab", "palette"],
+    ["badgeLayersTab", "layers"],
+  ]) {
+    const button = modal.querySelector("#" + id);
+    button.innerHTML = icon(name) + "<span>" + button.textContent + "</span>";
+  }
+  modal
+    .querySelector(".badge-preview-toolbar")
+    .insertAdjacentHTML(
+      "beforeend",
+      '<button type="button" id="badgeGrid" aria-pressed="false">' +
+        icon("grid") +
+        "<span>กริด</span></button>",
+    );
+  const nameField = document.createElement("label");
+  nameField.id = "badgeNameField";
+  nameField.className = "badge-name-field";
+  nameField.hidden = true;
+  nameField.innerHTML =
+    'ชื่อดีไซน์<input id="badgeDesignName" maxlength="200" />';
+  modal.querySelector(".dialoghead > div").append(nameField);
+  for (const [id, label] of [
+    ["badgeScale", "ขนาดภาพ"],
+    ["badgeRotation", "มุมหมุน"],
+    ["badgeX", "ตำแหน่ง X"],
+    ["badgeY", "ตำแหน่ง Y"],
+  ]) {
+    const input = modal.querySelector("#" + id),
+      caption =
+        id === "badgeScale" || id === "badgeRotation"
+          ? modal.querySelector('label[for="' + id + '"]')
+          : input.closest("label");
+    const button = document.createElement("button");
+    button.id = id + "Reset";
+    button.type = "button";
+    button.className = "property-reset action-icon";
+    button.title = "รีเซ็ต" + label;
+    button.setAttribute("aria-label", button.title);
+    button.innerHTML = icon("reset");
+    caption.append(button);
+  }
+  modal
+    .querySelector("#badgeTextPanel")
+    .insertAdjacentHTML(
+      "beforeend",
+      '<label>แบบอักษร<select id="badgeFont"><option value="sans">อ่านง่าย</option><option value="serif">มีเชิง</option><option value="hand">ตัวอักษรมีหัว</option></select></label><label>น้ำหนัก<select id="badgeWeight"><option value="normal">ปกติ</option><option value="bold">หนา</option></select></label>',
+    );
   document.body.append(modal);
   for (const key of [
     "badgeScaleNumber",
@@ -37,8 +122,14 @@ export function createBadgeEditor({
     layer = 0,
     drag = null,
     fileRevision = 0,
-    lastWheel = 0;
-  const snapshot = () => ({ item: clone(draft), styles: clone(styles) });
+    lastWheel = 0,
+    templateRevision = 0,
+    editingContext = null;
+  const snapshot = () => ({
+    item: clone(draft),
+    styles: clone(styles),
+    name: $("badgeDesignName").value,
+  });
   function remember() {
     history.push(snapshot());
     if (history.length > 30) history.shift();
@@ -65,9 +156,12 @@ export function createBadgeEditor({
     svg.setAttribute("height", "100%");
     $("badgeUndo").disabled = !history.length;
     $("badgeRedo").disabled = !future.length;
+    renderLayers();
   }
   function sync() {
-    const image = draft.image;
+    const image = draft.image,
+      unit = getProject().unit,
+      factor = units[unit];
     $("badgeScale").max = String(Math.max(400, (image?.scale || 1) * 100));
     for (const key of ["badgeScale", "badgeScaleNumber"])
       $(key).value = String((image?.scale || 1) * 100);
@@ -80,11 +174,14 @@ export function createBadgeEditor({
       ["X", "dx"],
       ["Y", "dy"],
     ]) {
-      $("badge" + axis).min = -draft.outer;
-      $("badge" + axis).max = draft.outer;
-      $("badge" + axis).value = image?.[key] || 0;
+      $("badge" + axis).step = String(0.1 / factor);
+      $("badge" + axis).min = -draft.outer / factor;
+      $("badge" + axis).max = draft.outer / factor;
+      $("badge" + axis).value = (image?.[key] || 0) / factor;
       $("badge" + axis + "Value").textContent =
-        (image?.[key] || 0).toFixed(2) + " mm";
+        ((image?.[key] || 0) / factor).toFixed(unit === "inch" ? 4 : 2) +
+        " " +
+        unit;
     }
     for (const key of [
       "badgeScale",
@@ -123,14 +220,23 @@ export function createBadgeEditor({
     ])
       $(key).disabled = !t;
     $("badgeCaption").value = t?.text || "";
-    $("badgeTextSize").value = t?.size || 5;
+    $("badgeTextSize").value = (t?.size || 5) / factor;
+    $("badgeTextSize").min = 0.1 / factor;
+    $("badgeTextSizeLabel").textContent = "ขนาดข้อความ (" + unit + ")";
     $("badgeTextColor").value = t?.color || "#172033";
+    $("badgeFont").value = t?.font || "sans";
+    $("badgeWeight").value = t?.weight || "normal";
+    $("badgeFont").disabled = !t;
+    $("badgeWeight").disabled = !t;
+    for (const id of ["badgeScale", "badgeRotation", "badgeX", "badgeY"])
+      $(id + "Reset").disabled = !image;
     for (const [axis, key] of [
       ["X", "x"],
       ["Y", "y"],
     ]) {
-      $("badgeText" + axis).max = draft.outer;
-      $("badgeText" + axis).value = t?.[key] || 0;
+      $("badgeText" + axis).step = String(0.1 / factor);
+      $("badgeText" + axis).max = draft.outer / factor;
+      $("badgeText" + axis).value = (t?.[key] || 0) / factor;
     }
     for (const [input, key] of [
       ["badgeCutGuide", "cut"],
@@ -147,6 +253,7 @@ export function createBadgeEditor({
   }
   const close = () => {
     fileRevision++;
+    templateRevision++;
     drag = null;
     modal.close();
   };
@@ -164,6 +271,7 @@ export function createBadgeEditor({
         other.tabIndex = active ? 0 : -1;
         $(other.getAttribute("aria-controls")).hidden = !active;
       }
+      $("badgeInspectorTitle").textContent = tab.textContent;
     });
     tab.addEventListener("keydown", (e) => {
       const tabs = [...modal.querySelectorAll("[role=tab]")];
@@ -183,6 +291,7 @@ export function createBadgeEditor({
     const s = history.pop();
     draft = s.item;
     styles = s.styles;
+    $("badgeDesignName").value = s.name;
     sync();
   };
   $("badgeRedo").onclick = () => {
@@ -191,14 +300,194 @@ export function createBadgeEditor({
     const s = future.pop();
     draft = s.item;
     styles = s.styles;
+    $("badgeDesignName").value = s.name;
     sync();
   };
   $("resetBadgeDraft").onclick = () => {
     remember();
     draft = clone(original.item);
     styles = clone(original.styles);
+    $("badgeDesignName").value = original.name;
     sync();
   };
+  $("badgeGrid").onclick = () => {
+    const active = $("badgeGrid").getAttribute("aria-pressed") !== "true";
+    $("badgeGrid").setAttribute("aria-pressed", String(active));
+    $("badgePreview").classList.toggle("alignment-grid", active);
+  };
+  for (const [control, key, fallback] of [
+    ["badgeScale", "scale", 1],
+    ["badgeRotation", "rotation", 0],
+    ["badgeX", "dx", 0],
+    ["badgeY", "dy", 0],
+  ])
+    $(control + "Reset").onclick = () => {
+      if (!draft.image) return;
+      edit(() => (draft.image[key] = original.item.image?.[key] ?? fallback));
+      sync();
+    };
+  for (const [id, key] of [
+    ["badgeFont", "font"],
+    ["badgeWeight", "weight"],
+  ])
+    $(id).onchange = () => {
+      if (draft.texts[layer])
+        edit(() => (draft.texts[layer][key] = $(id).value));
+    };
+  function renderLayers() {
+    const list = $("badgeLayerList");
+    list.replaceChildren();
+    function row(label, graphic, select, commands = []) {
+      const el = document.createElement("div");
+      el.className = "designer-layer";
+      const choose = document.createElement("button");
+      choose.type = "button";
+      choose.className = "layer-select";
+      choose.innerHTML = icon(graphic);
+      const span = document.createElement("span");
+      span.textContent = label;
+      choose.append(span);
+      choose.onclick = select;
+      el.append(choose);
+      for (const [name, title, fn] of commands) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "action-icon" + (name === "trash" ? " danger" : "");
+        b.title = title;
+        b.setAttribute("aria-label", title);
+        b.innerHTML = icon(name);
+        b.onclick = fn;
+        el.append(b);
+      }
+      list.append(el);
+    }
+    for (let i = draft.texts.length - 1; i >= 0; i--) {
+      const commands = [];
+      if (i < draft.texts.length - 1)
+        commands.push([
+          "up",
+          "เลื่อนข้อความขึ้น",
+          () => {
+            edit(() => {
+              [draft.texts[i], draft.texts[i + 1]] = [
+                draft.texts[i + 1],
+                draft.texts[i],
+              ];
+            });
+            layer = i + 1;
+            sync();
+          },
+        ]);
+      if (i > 0)
+        commands.push([
+          "down",
+          "เลื่อนข้อความลง",
+          () => {
+            edit(() => {
+              [draft.texts[i], draft.texts[i - 1]] = [
+                draft.texts[i - 1],
+                draft.texts[i],
+              ];
+            });
+            layer = i - 1;
+            sync();
+          },
+        ]);
+      commands.push([
+        "trash",
+        "ลบเลเยอร์ข้อความ",
+        () => {
+          edit(() => draft.texts.splice(i, 1));
+          sync();
+        },
+      ]);
+      row(
+        draft.texts[i].text || "ข้อความว่าง",
+        "text",
+        () => {
+          layer = i;
+          $("badgeTextTab").click();
+          sync();
+        },
+        commands,
+      );
+    }
+    if (draft.image)
+      row("รูปภาพ", "image", () => $("badgeImageTab").click(), [
+        [
+          "trash",
+          "ลบเฉพาะเลเยอร์ภาพ",
+          () => {
+            edit(() => (draft.image = null));
+            sync();
+          },
+        ],
+      ]);
+    row("พื้นหลัง", "palette", () => $("badgeColorTab").click());
+  }
+  async function loadTemplates() {
+    const revision = ++templateRevision;
+    $("badgeTemplateStatus").textContent = "กำลังโหลดเทมเพลต…";
+    try {
+      const options = await getTemplates();
+      if (!modal.open || revision !== templateRevision) return;
+      $("badgeDesignTemplates").replaceChildren();
+      $("badgeTemplateStatus").textContent = options.length
+        ? ""
+        : "ยังไม่มีดีไซน์ที่บันทึกไว้";
+      options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "designer-template";
+        const preview = document.createElement("span");
+        preview.className = "designer-template-preview";
+        preview.inert = true;
+        preview.setAttribute("aria-hidden", "true");
+        preview.innerHTML = renderPage(
+          { ...getProject(), assets: option.assets },
+          {
+            paper: {
+              width: option.item.outer,
+              height: option.item.outer,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            },
+            items: [{ ...option.item, x: 0, y: 0 }],
+          },
+          { selectedIds: [], prefix: "designer-template-" + index + "-" },
+        );
+        const label = document.createElement("span");
+        label.textContent = option.name;
+        button.append(preview, label);
+        button.onclick = () => {
+          remember();
+          Object.assign(assets, clone(option.assets));
+          const source = option.item;
+          draft.background = source.background;
+          draft.image = clone(source.image);
+          draft.texts = source.texts.map((t) => ({
+            ...clone(t),
+            x: (t.x * draft.outer) / source.outer,
+            y: (t.y * draft.outer) / source.outer,
+          }));
+          if (draft.image) {
+            draft.image.dx *= draft.outer / source.outer;
+            draft.image.dy *= draft.outer / source.outer;
+          }
+          sync();
+          $("badgeEditorStatus").textContent =
+            "ใช้ต้นแบบแล้ว • กดบันทึกและปิดเพื่อนำไปใช้";
+        };
+        $("badgeDesignTemplates").append(button);
+      });
+    } catch (e) {
+      if (revision === templateRevision)
+        $("badgeTemplateStatus").textContent =
+          "โหลดเทมเพลตไม่สำเร็จ: " + e.message;
+    }
+  }
   $("badgeCenter").onclick = () => {
     edit(() => {
       draft.image.dx = 0;
@@ -238,9 +527,17 @@ export function createBadgeEditor({
   ])
     $("badge" + axis).addEventListener("input", () => {
       if (draft.image)
-        edit(() => (draft.image[key] = Number($("badge" + axis).value)));
+        edit(
+          () =>
+            (draft.image[key] =
+              Number($("badge" + axis).value) * units[getProject().unit]),
+        );
       $("badge" + axis + "Value").textContent =
-        Number($("badge" + axis).value).toFixed(2) + " mm";
+        Number($("badge" + axis).value).toFixed(
+          getProject().unit === "inch" ? 4 : 2,
+        ) +
+        " " +
+        getProject().unit;
     });
   $("badgeBackground").oninput = () =>
     edit(() => (draft.background = $("badgeBackground").value));
@@ -273,7 +570,7 @@ export function createBadgeEditor({
   ])
     $(input).oninput = () => {
       const value = ["size", "x", "y"].includes(key)
-        ? Number($(input).value)
+        ? Number($(input).value) * units[getProject().unit]
         : $(input).value;
       if (key === "size" && (!Number.isFinite(value) || value <= 0)) return;
       edit(() => (draft.texts[layer][key] = value));
@@ -418,7 +715,7 @@ export function createBadgeEditor({
     e.preventDefault();
     loadImage(e.dataTransfer.files[0]);
   };
-  $("saveBadgeDraft").onclick = () => {
+  $("saveBadgeDraft").onclick = async () => {
     const invalid = [...modal.querySelectorAll('input[type="number"]')].find(
       (input) => !input.disabled && !input.checkValidity(),
     );
@@ -428,11 +725,29 @@ export function createBadgeEditor({
       invalid.reportValidity();
       return;
     }
+    if (
+      editingContext?.kind === "design" &&
+      !$("badgeDesignName").value.trim()
+    ) {
+      $("badgeEditorStatus").textContent = "กรุณาระบุชื่อดีไซน์";
+      $("badgeDesignName").focus();
+      return;
+    }
+    $("saveBadgeDraft").disabled = true;
     try {
-      onSave(clone(draft), assets, clone(styles));
+      await onSave(
+        clone(draft),
+        assets,
+        clone(styles),
+        editingContext?.kind === "design"
+          ? { name: $("badgeDesignName").value.trim() }
+          : null,
+      );
       close();
     } catch (e) {
       $("badgeEditorStatus").textContent = e.message;
+    } finally {
+      $("saveBadgeDraft").disabled = false;
     }
   };
   return {
@@ -449,6 +764,9 @@ export function createBadgeEditor({
             : "สติกเกอร์");
       assets = clone(getProject().assets);
       styles = clone(getProject().styles);
+      editingContext = getEditingContext();
+      $("badgeNameField").hidden = editingContext?.kind !== "design";
+      $("badgeDesignName").value = editingContext?.name || getProject().name;
       original = snapshot();
       history = [];
       future = [];
@@ -459,8 +777,11 @@ export function createBadgeEditor({
       $("badgeEditorScope").textContent =
         `ปรับภาพ ข้อความ และสี • บันทึกให้ ${getSelectionCount()} ชิ้นที่เลือก`;
       modal.showModal();
+      $("badgeGrid").setAttribute("aria-pressed", "false");
+      $("badgePreview").classList.remove("alignment-grid");
       $("badgeImageTab").click();
       sync();
+      loadTemplates();
     },
   };
 }

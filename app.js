@@ -1,3 +1,8 @@
+import { icon } from "./ui-icons.js";
+import {
+  createCanvasActions,
+  createDeleteConfirmation,
+} from "./canvas-actions.js";
 import { spacingReport, allDesignsApplied } from "./workspace-state.js";
 import {
   createPositionControls,
@@ -58,7 +63,12 @@ let project = newProject(),
   layoutRecords = [];
 let selectedIds = new Set(),
   selectionPage = null;
-let templateManager, positionControls, pageControls, badgeEditor;
+let templateManager,
+  positionControls,
+  pageControls,
+  badgeEditor,
+  canvasActions,
+  deleteConfirmation;
 const inputUnits = {};
 const selectedItems = () => pg().items.filter((a) => selectedIds.has(a.id));
 const editItems = () => (selectedIds.size ? selectedItems() : [needItem()]);
@@ -103,10 +113,32 @@ function convertSelection(type) {
     }
   }, `เปลี่ยนประเภท ${selectedIds.size} ชิ้นแล้ว • จัดเรียงอัตโนมัติได้หากชิ้นงานทับกัน`);
 }
-function deleteSelection() {
+async function deleteSelection() {
   if (!selectedIds.size) return;
+  const ids = new Set(selectedIds),
+    pageId = pg().id;
+  const labels = [
+    ...new Set(
+      selectedItems().map(
+        (a) =>
+          ({ round: "เข็มกลัด", square: "แม่เหล็ก", sticker: "สติกเกอร์" })[
+            a.type
+          ],
+      ),
+    ),
+  ].join(" / ");
+  if (
+    !(await deleteConfirmation.ask(
+      `ต้องการลบ${labels} ${ids.size} ชิ้นที่เลือกใช่หรือไม่?`,
+    ))
+  )
+    return;
+  if (pg().id !== pageId) {
+    status("หน้ากระดาษเปลี่ยนแล้ว กรุณาเลือกชิ้นงานอีกครั้ง", true);
+    return;
+  }
   transaction(() => {
-    pg().items = pg().items.filter((a) => !selectedIds.has(a.id));
+    pg().items = pg().items.filter((a) => !ids.has(a.id));
     selectItems([]);
   }, "ลบชิ้นที่เลือกแล้ว • Ctrl/Cmd+Z เพื่อย้อนกลับ");
 }
@@ -304,8 +336,6 @@ function syncForm() {
     "batchRound",
     "batchSquare",
     "batchSticker",
-    "duplicateSelected",
-    "deleteSelected",
     "duplicateItem",
     "deleteItem",
   ])
@@ -411,7 +441,6 @@ function syncForm() {
   syncEditorControls();
   positionControls?.sync();
   pageControls?.sync(pg(), inputUnits.width || project.unit);
-  $("openBadgeEditor").disabled = !item();
 }
 function zoom() {
   const svg = $("sheet").querySelector("svg");
@@ -446,7 +475,8 @@ function render() {
       String(button.dataset.layoutMode === (pg().layout.mode || "grid")),
     );
   $("count").textContent =
-    `${pg().items.length} ชิ้นในหน้านี้ • ${project.pages.length} หน้า`;
+    `${pg().items.length} ชิ้น · หน้า ${pageIndex + 1} / ${project.pages.length}`;
+  canvasActions?.sync();
   const warnings = productionWarnings(project, pg());
   status(
     warnings.filter((w) => !w.includes("ทับกัน")).join(" • "),
@@ -624,8 +654,6 @@ on("addItem", "click", () =>
 );
 on("duplicateItem", "click", duplicateSelection);
 on("deleteItem", "click", deleteSelection);
-on("duplicateSelected", "click", duplicateSelection);
-on("deleteSelected", "click", deleteSelection);
 for (const [button, type] of [
   ["batchRound", "round"],
   ["batchSquare", "square"],
@@ -701,6 +729,7 @@ document.addEventListener("keydown", (e) => {
     };
   else if (mod && e.shiftKey && e.key === "Delete")
     action = clearSelectedImages;
+  else if (!mod && e.code === "KeyE") action = () => badgeEditor?.open();
   else if (e.key === "Delete" || e.key === "Backspace")
     action = deleteSelection;
   else if (e.key === "Escape")
@@ -776,6 +805,7 @@ on("sheet", "keydown", (e) => {
     e.preventDefault();
     chooseItem(Number(g.dataset.slot), e.shiftKey);
     render();
+    canvasActions?.show();
     $("sheet").querySelector(`[data-slot="${g.dataset.slot}"]`)?.focus();
   }
 });
@@ -886,6 +916,7 @@ function endGesture(e, cancel = false) {
     if (d.index !== null) chooseItem(d.index, d.add);
     else if (!d.add) selectItems([]);
     render();
+    if (d.index !== null && selectedIds.size) canvasActions?.show();
   }
 }
 $("canvas").addEventListener("pointerup", (e) => endGesture(e));
@@ -1380,7 +1411,9 @@ templateManager = createTemplateManager({
     ),
   onWorkspaceChange: (kind) => {
     revealControl(kind === "design" ? "image" : "paper");
-    document.querySelector(".workspace").scrollIntoView({ block: "nearest" });
+    if (kind === "design") badgeEditor.open();
+    else
+      document.querySelector(".workspace").scrollIntoView({ block: "nearest" });
   },
   applyDesign: (source, assets) =>
     transaction(() => {
@@ -1690,18 +1723,8 @@ positionControls = createPositionControls({
 });
 pageControls = configurePageControls({
   setUnit: (unit) => {
-    for (const id of [
-      "width",
-      "height",
-      "top",
-      "bottom",
-      "left",
-      "right",
-      "gapX",
-      "gapY",
-    ])
-      inputUnits[id] = unit;
-    syncForm();
+    $("unit").value = unit;
+    $("unit").dispatchEvent(new Event("change", { bubbles: true }));
   },
   onOrientation: (orientation) => {
     if (pg().paper.width <= pg().paper.height !== (orientation === "portrait"))
@@ -1730,12 +1753,15 @@ badgeEditor = createBadgeEditor({
   getProject: () => project,
   getItem: item,
   getSelectionCount: () => selectedIds.size,
-  onSave: (draft, assets, styles) => {
+  getTemplates: () => templateManager.designOptions(),
+  getEditingContext: () => templateManager.editingContext(),
+  onSave: async (draft, assets, styles, meta) => {
     if (
       !transaction(() => {
         if (draft.image)
           project.assets[draft.image.asset] = clone(assets[draft.image.asset]);
         project.styles = styles;
+        if (meta?.name) project.name = meta.name;
         for (const a of editItems()) {
           a.background = draft.background;
           a.image = clone(draft.image);
@@ -1752,9 +1778,23 @@ badgeEditor = createBadgeEditor({
       }, "บันทึกดีไซน์ให้ชิ้นที่เลือกแล้ว")
     )
       throw Error("บันทึกไม่สำเร็จ กรุณาตรวจค่าที่ปรับ");
+    if (meta?.name) await templateManager.saveCurrentEditing();
   },
 });
-on("openBadgeEditor", "click", () => badgeEditor.open());
+deleteConfirmation = createDeleteConfirmation();
+canvasActions = createCanvasActions({
+  getSheetRect: () => $("sheetWrap").getBoundingClientRect(),
+  getCanvasRect: () => $("canvas").getBoundingClientRect(),
+  getAnchor: () =>
+    item()
+      ? $("sheet")
+          .querySelector(`[data-slot="${selected}"]`)
+          ?.getBoundingClientRect()
+      : null,
+  onEdit: () => badgeEditor.open(),
+  onDuplicate: duplicateSelection,
+  onDelete: deleteSelection,
+});
 on("fixSpacing", "click", () => $("autoArrange").click());
 for (const [gallery, kind] of [
   ["designGallery", "design"],
@@ -1762,14 +1802,20 @@ for (const [gallery, kind] of [
 ]) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "wide";
+  button.className = "gallery-add action-icon";
   button.id = "create" + (kind === "design" ? "Design" : "Layout") + "Template";
-  button.textContent =
-    kind === "design"
-      ? "บันทึกงานปัจจุบันเป็นดีไซน์ใหม่"
-      : "บันทึกการจัดวางปัจจุบัน";
+  button.innerHTML = icon("plus");
+  const addLabel =
+    kind === "design" ? "เพิ่มดีไซน์เข็มกลัด" : "เพิ่มเทมเพลตจัดวาง";
+  button.title = addLabel;
+  button.setAttribute("aria-label", addLabel);
   button.addEventListener("click", () => templateManager.openCreate(kind));
-  $(gallery).prepend(button);
+  const heading = $(gallery).querySelector("h3");
+  heading.textContent = kind === "design" ? "ดีไซน์เข็มกลัด" : "เทมเพลตจัดวาง";
+  const headingRow = document.createElement("div");
+  headingRow.className = "gallery-heading";
+  heading.before(headingRow);
+  headingRow.append(heading, button);
 }
 for (const k of Object.keys(inputUnits)) inputUnits[k] = project.unit;
 render();

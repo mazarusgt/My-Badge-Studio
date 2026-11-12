@@ -1,3 +1,4 @@
+import { icon } from "./ui-icons.js";
 import {
   clone,
   id,
@@ -134,7 +135,7 @@ export function createTemplateManager({
           }
         : project.pages[0];
     const preview = `<div class="gallery-preview" aria-hidden="true" inert>${renderPage(project, page, { selectedIds: [], prefix: "gallery-" + record.key.replace(/[^a-z0-9-]/gi, "_") + "-" })}</div>`;
-    return `<article class="card template-card">${preview}<strong>${esc(name)}</strong><p>${record.kind === "layout" ? project.pages[0].items.length + " ชิ้น • จัดวางบนกระดาษ" : project.pages.length + " หน้า • รูปและข้อความ"}</p><div class="template-card-actions"><button type="button" ${attr}="${index}" data-action="use" data-record="${esc(record.key)}">${record.kind === "layout" ? "ใช้การจัดวาง" : "ใช้ดีไซน์"}</button><button type="button" data-action="edit" data-record="${esc(record.key)}">แก้ไขบนแคนวาส</button><button type="button" data-action="metadata" data-record="${esc(record.key)}">ชื่อ / ชุดสี</button><button type="button" ${record.kind === "design" && record.personal ? `data-remove-template="${index}"` : ""} data-action="delete" data-record="${esc(record.key)}" class="danger">ลบ</button></div></article>`;
+    return `<article class="card template-card">${preview}<strong>${esc(name)}</strong><p>${record.kind === "layout" ? project.pages[0].items.length + " ชิ้น • จัดวางบนกระดาษ" : project.pages.length + " หน้า • รูปและข้อความ"}</p><div class="template-card-actions"><button type="button" ${attr}="${index}" data-action="use" data-record="${esc(record.key)}">${record.kind === "layout" ? "ใช้การจัดวาง" : "ใช้ดีไซน์"}</button><button type="button" class="action-icon" data-action="edit" data-record="${esc(record.key)}" title="แก้ไข ${esc(name)}" aria-label="แก้ไข ${esc(name)}">${icon("edit")}</button><button type="button" ${record.kind === "design" && record.personal ? `data-remove-template="${index}"` : ""} data-action="delete" data-record="${esc(record.key)}" class="danger action-icon" title="ลบ ${esc(name)}" aria-label="ลบ ${esc(name)}">${icon("trash")}</button></div></article>`;
   }
   async function show() {
     const active =
@@ -181,6 +182,14 @@ export function createTemplateManager({
       ? "มีการเปลี่ยนแปลงที่ยังไม่บันทึก"
       : "บันทึกการเปลี่ยนแปลงล่าสุดแล้ว";
     $("saveTemplateEdits").disabled = !dirty;
+    const palette = paletteOf(getProject());
+    for (const [input, value] of [
+      ["editingName", getProject().name],
+      ["editingBackground", palette.background],
+      ["editingText", palette.text],
+      ["editingLine", palette.line],
+    ])
+      if (document.activeElement !== $(input)) $(input).value = value;
   }
   async function beginEdit(record) {
     if (
@@ -347,7 +356,44 @@ export function createTemplateManager({
     editing = null;
     paintEditing();
   });
+  for (const [input, key] of [
+    ["editingBackground", "background"],
+    ["editingText", "text"],
+    ["editingLine", "line"],
+  ])
+    $(input).addEventListener("change", () => {
+      if (editing)
+        onMetadataChange(getProject().name, { [key]: $(input).value });
+    });
+  $("editingName").addEventListener("change", () => {
+    if (editing) {
+      const name = $("editingName").value.trim();
+      if (name) {
+        editing.name = name;
+        onMetadataChange(name, {});
+      } else $("editingName").value = getProject().name;
+    }
+  });
   return {
+    async designOptions() {
+      await seed();
+      return [
+        ...(await store.list("gallery-design:")),
+        ...(await store.list("template:")),
+      ]
+        .map((row) => ({
+          key: row.key,
+          name: row.value.name,
+          item: clone(row.value.pages[0].items[0]),
+          assets: clone(row.value.assets),
+        }))
+        .filter((row) => row.item);
+    },
+    editingContext: () =>
+      editing
+        ? { key: editing.key, kind: editing.kind, name: getProject().name }
+        : null,
+    saveCurrentEditing: saveEditing,
     show,
     paintEditing,
     openCreate: (kind) => openDetails(null, kind),

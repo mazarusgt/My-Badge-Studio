@@ -1,4 +1,8 @@
-import { reveal } from "./editor-helpers.mjs";
+import {
+  reveal,
+  openDesigner,
+  confirmItemDeletion,
+} from "./editor-helpers.mjs";
 import { chromium } from "playwright-core";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";

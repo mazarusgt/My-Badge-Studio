@@ -1,4 +1,8 @@
-import { reveal } from "./editor-helpers.mjs";
+import {
+  reveal,
+  openDesigner,
+  confirmItemDeletion,
+} from "./editor-helpers.mjs";
 import { chromium } from "playwright-core";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -72,6 +76,7 @@ try {
     (await count()) === 8 && (await selected()) === 2,
   );
   await p.keyboard.press("Delete");
+  await confirmItemDeletion(p);
   check(
     "Delete removes only selected copies",
     (await count()) === 6 && (await selected()) === 0,
@@ -84,6 +89,7 @@ try {
   await p.locator("#projectName").fill("Delete must edit text");
   await p.keyboard.press("Control+a");
   await p.keyboard.press("Delete");
+  await confirmItemDeletion(p);
   check(
     "Delete in a text field does not remove canvas items",
     (await count()) === 6,

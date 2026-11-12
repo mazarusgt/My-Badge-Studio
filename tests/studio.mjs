@@ -4,7 +4,11 @@ import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { reveal } from "./editor-helpers.mjs";
+import {
+  reveal,
+  openDesigner,
+  confirmItemDeletion,
+} from "./editor-helpers.mjs";
 const data = await mkdtemp(path.join(tmpdir(), "badge-studio-")),
   origin = "http://127.0.0.1:5198";
 const server = spawn(process.execPath, ["server.js"], {
@@ -81,6 +85,7 @@ try {
   );
   await reveal(p, "deleteItem");
   await p.locator("#deleteItem").click();
+  await confirmItemDeletion(p);
   check(
     "removing overlapping item clears warning",
     !(await p.locator("#spacingWarning").isVisible()),
@@ -191,7 +196,7 @@ try {
         !document.querySelector("#saveBadgeDraft").disabled,
     );
   };
-  await p.locator("#openBadgeEditor").click();
+  await openDesigner(p);
   await upload();
   check(
     "dedicated dark editor renders uploaded image",
@@ -227,7 +232,7 @@ try {
     "cancel leaves main project images unchanged",
     (await snapshot()).pages[0].items.every((a) => !a.image),
   );
-  await p.locator("#openBadgeEditor").click();
+  await openDesigner(p);
   await upload();
   await p.locator("#badgeScaleNumber").fill("160");
   await p.locator("#badgeScaleNumber").dispatchEvent("input");
@@ -261,6 +266,7 @@ try {
     (await ownDesign().textContent()).includes("ดีไซน์ทดสอบ"),
   );
   await ownDesign().locator('[data-action="edit"]').click();
+  await p.locator("#cancelBadgeDraft").click();
   check(
     "editing design returns to workspace with named mode",
     !(await p.locator("#libraryDialog").isVisible()) &&
@@ -279,13 +285,14 @@ try {
     (await ownDesign().count()) === 1 &&
       (await ownDesign().textContent()).includes("ดีไซน์ที่แก้ไข"),
   );
-  await ownDesign().locator('[data-action="metadata"]').click();
-  await p.locator("#managedTemplateName").fill("ดีไซน์เปลี่ยนชื่อ");
-  await p.locator("#managedText").fill("#fedcba");
-  await p.locator("#saveTemplateDetails").click();
+  await closeLibrary();
+  await change("editingName", "ดีไซน์เปลี่ยนชื่อ");
+  await change("editingText", "#fedcba");
+  await p.locator("#saveTemplateEdits").click();
   await p.waitForFunction(
-    () => !document.querySelector("#templateDetailsDialog").open,
+    () => document.querySelector("#saveTemplateEdits").disabled,
   );
+  await openLibrary();
   check(
     "design supports rename and palette customization",
     (await ownDesign().textContent()).includes("ดีไซน์เปลี่ยนชื่อ"),
@@ -296,10 +303,6 @@ try {
     (await p.locator("#editingTitle").textContent()).includes(
       "ดีไซน์เปลี่ยนชื่อ",
     ) && (await p.inputValue("#projectName")) === "ดีไซน์เปลี่ยนชื่อ",
-  );
-  await p.locator("#saveTemplateEdits").click();
-  await p.waitForFunction(
-    () => document.querySelector("#saveTemplateEdits").disabled,
   );
   await p.locator("#finishTemplateEdits").click();
   await openLibrary();
@@ -333,13 +336,15 @@ try {
   );
   await openLibrary();
   await p.locator("#layoutGalleryTab").click();
-  await ownLayout().locator('[data-action="metadata"]').click();
-  await p.locator("#managedTemplateName").fill("เลย์เอาต์เปลี่ยนชื่อ");
-  await p.locator("#managedLine").fill("#ddbbff");
-  await p.locator("#saveTemplateDetails").click();
+  await closeLibrary();
+  await change("editingName", "เลย์เอาต์เปลี่ยนชื่อ");
+  await change("editingLine", "#ddbbff");
+  await p.locator("#saveTemplateEdits").click();
   await p.waitForFunction(
-    () => !document.querySelector("#templateDetailsDialog").open,
+    () => document.querySelector("#saveTemplateEdits").disabled,
   );
+  await openLibrary();
+  await p.locator("#layoutGalleryTab").click();
   await ownLayout().locator('[data-action="edit"]').click();
   saved = await snapshot();
   check(
@@ -377,7 +382,7 @@ try {
     path: "test-results/studio-page-setup.png",
     fullPage: true,
   });
-  await p.locator("#openBadgeEditor").click();
+  await openDesigner(p);
   await upload();
   await p.mouse.move(100, 80);
   await p.screenshot({ path: "test-results/studio-badge-editor.png" });
@@ -392,7 +397,7 @@ try {
     );
   }
   await p.setViewportSize({ width: 390, height: 844 });
-  await p.locator("#openBadgeEditor").click();
+  await openDesigner(p);
   check(
     "dedicated editor fits mobile width",
     await p

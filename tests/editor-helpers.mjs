@@ -22,3 +22,12 @@ export async function reveal(page, id) {
       details.open = true;
   });
 }
+export async function openDesigner(page) {
+  await page.locator("#canvas").focus();
+  await page.keyboard.press("e");
+  await page.locator("#badgeEditor[open]").waitFor();
+}
+export async function confirmItemDeletion(page) {
+  if (await page.locator("#deleteItemsDialog").isVisible())
+    await page.locator("#confirmDeleteItems").click();
+}

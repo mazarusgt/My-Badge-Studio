@@ -4,7 +4,11 @@ import { spawn } from "node:child_process";
 import { mkdtemp, rm, readFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { reveal } from "./editor-helpers.mjs";
+import {
+  reveal,
+  openDesigner,
+  confirmItemDeletion,
+} from "./editor-helpers.mjs";
 const data = await mkdtemp(path.join(tmpdir(), "badge-editor-"));
 const origin = "http://127.0.0.1:5196";
 const server = spawn(process.execPath, ["server.js"], {

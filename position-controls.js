@@ -1,3 +1,4 @@
+import { icon } from "./ui-icons.js";
 const $ = (id) => document.getElementById(id);
 const positions = {
   itemX: ["x", "item"],
@@ -81,6 +82,32 @@ export function configurePageControls({ setUnit, onOrientation, onCenter }) {
   unitLabel.append(unit);
   settings.querySelector("summary").after(unitLabel);
   unit.addEventListener("change", () => setUnit(unit.value));
+  for (const select of [unit, $("unit")]) {
+    const picker = document.createElement("div");
+    picker.className = "unit-picker";
+    picker.dataset.unitFor = select.id;
+    picker.setAttribute("role", "group");
+    picker.setAttribute("aria-label", "หน่วยวัดทั้งหมด");
+    for (const [value, label] of [
+      ["mm", "mm"],
+      ["cm", "cm"],
+      ["inch", "in"],
+    ]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.unit = value;
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        select.value = value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      picker.append(button);
+    }
+    select.after(picker);
+    select.classList.add("replaced-control");
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+  }
   const ids = [
     "width",
     "height",
@@ -100,8 +127,20 @@ export function configurePageControls({ setUnit, onOrientation, onCenter }) {
   grid.className = "page-grid";
   grid.innerHTML =
     '<legend>แถว คอลัมน์ และระยะห่าง</legend><p class="hint">ใส่ 0 เพื่อคำนวณจำนวนอัตโนมัติ แล้วกดจัดเต็มหน้า</p><div class="pair"></div>';
-  for (const id of ["cols", "rows", "gapX", "gapY"])
-    grid.querySelector(".pair").append($(id).closest("label"));
+  for (const [id, name, graphic] of [
+    ["cols", "คอลัมน์", "columns"],
+    ["rows", "แถว", "rows"],
+    ["gapX", "ระยะห่างคอลัมน์", "gapX"],
+    ["gapY", "ระยะห่างแถว", "gapY"],
+  ]) {
+    const label = $(id).closest("label");
+    label.firstChild.textContent = "";
+    const caption = document.createElement("span");
+    caption.className = "property-caption";
+    caption.innerHTML = icon(graphic) + name;
+    label.prepend(caption);
+    grid.querySelector(".pair").append(label);
+  }
   const margins = document.createElement("fieldset");
   margins.className = "page-margins";
   margins.innerHTML =
@@ -126,6 +165,12 @@ export function configurePageControls({ setUnit, onOrientation, onCenter }) {
   return {
     sync(page, currentUnit) {
       unit.value = currentUnit;
+      for (const group of document.querySelectorAll("[data-unit-for]"))
+        for (const button of group.children)
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.unit === currentUnit),
+          );
       for (const button of orientation.children)
         button.setAttribute(
           "aria-pressed",

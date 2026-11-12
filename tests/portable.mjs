@@ -1,4 +1,8 @@
-import { reveal } from "./editor-helpers.mjs";
+import {
+  reveal,
+  openDesigner,
+  confirmItemDeletion,
+} from "./editor-helpers.mjs";
 import { chromium } from "playwright-core";
 import http from "node:http";
 import path from "node:path";
@@ -132,7 +136,7 @@ try {
     (await page.locator("#printSheet svg").count()) === 2,
   );
   await page.locator("#exportDialog .dialoghead button").click();
-  await page.locator("#openBadgeEditor").click();
+  await openDesigner(page);
   check(
     "dedicated badge editor works offline",
     await page.locator("#badgeEditor").isVisible(),

@@ -1803,3 +1803,436 @@ input[type="range"] {
   height: 130px;
   max-width: 100%;
 }
+
+/* Focused design tools and direct canvas actions. */
+.action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  width: 44px;
+  min-height: 44px;
+  padding: 10px;
+  flex: 0 0 44px;
+}
+.action-icon .icon {
+  width: 19px;
+  height: 19px;
+}
+.gallery-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 6px 0 14px;
+}
+.gallery-heading h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.gallery-add {
+  border-color: #b18bce;
+  background: #3b2b49;
+  color: #ead1ff;
+}
+.template-card-actions {
+  flex-wrap: nowrap;
+}
+.template-card-actions > [data-action="use"] {
+  flex: 1;
+  min-width: 0;
+}
+.template-card-actions > .action-icon {
+  min-width: 40px;
+  width: 40px;
+  flex-basis: 40px;
+  padding: 8px;
+}
+.danger {
+  color: #ffb3c4;
+}
+.canvas-item-actions {
+  position: fixed;
+  z-index: 25;
+  display: flex;
+  gap: 5px;
+  padding: 6px;
+  background: #2a2234;
+  border: 1px solid #a885c1;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px #0007;
+}
+.canvas-item-actions .danger,
+.template-card-actions .danger {
+  color: #ff9ab3;
+  border-color: #a95870;
+}
+.canvas-item-actions button {
+  background: #352a41;
+}
+.delete-items-dialog {
+  max-width: 450px;
+  background: #221924;
+  border-color: #a75e7a;
+}
+.delete-items-dialog h2 {
+  font-size: 20px;
+}
+.delete-items-dialog p {
+  line-height: 1.8;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+#confirmDeleteItems {
+  background: #8a2b49;
+  color: #fff0f4;
+  border-color: #d5809b;
+}
+.item-counter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid #746180;
+  background: #2d2535;
+  border-radius: 9px;
+  color: #ead9f4;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.workspace > footer {
+  justify-content: center;
+  padding: 9px;
+}
+.unit-picker {
+  display: inline-flex;
+  gap: 3px;
+  padding: 4px;
+  margin-top: 6px;
+  background: #211c28;
+  border: 1px solid #685171;
+  border-radius: 12px;
+}
+.unit-picker button {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border-color: transparent;
+  background: transparent;
+}
+.unit-picker button[aria-pressed="true"] {
+  background: #d8b4fe;
+  color: #251330;
+  border-color: #d8b4fe;
+}
+.projectbar .unit-picker {
+  margin-top: 0;
+}
+.page-unit .unit-picker {
+  display: flex;
+}
+.page-unit .unit-picker button {
+  flex: 1;
+}
+.property-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.6;
+}
+.property-caption .icon {
+  width: 18px;
+  height: 18px;
+}
+.editing-properties {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.editing-properties label {
+  margin: 0;
+  font-size: 12px;
+}
+.editing-properties label:first-child {
+  flex: 1;
+  min-width: 160px;
+}
+.editing-properties input[type="color"] {
+  width: 48px;
+  min-height: 40px;
+}
+.icon-attribution {
+  color: #c9b4d8;
+  font-size: 12px;
+}
+.icon-attribution a {
+  color: #e2c1fa;
+  text-underline-offset: 3px;
+}
+.badge-editor {
+  max-width: 1400px;
+  height: 94dvh;
+  max-height: 94dvh;
+}
+.badge-editor[open] {
+  display: flex;
+  flex-direction: column;
+}
+.badge-editor-body {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  grid-template-columns: 86px minmax(0, 1fr) minmax(300px, 350px);
+  gap: 14px;
+}
+.badge-toolrail {
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 6px;
+  background: #211a29;
+  border: 0;
+  border-radius: 12px;
+}
+.badge-toolrail button {
+  flex: 0 0 auto;
+  min-height: 66px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 5px;
+  font-size: 12px;
+}
+.badge-preview-panel {
+  min-height: 0;
+}
+#badgePreview {
+  width: min(90%, 620px);
+  position: relative;
+}
+#badgePreview.alignment-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(#c689eb55 1px, transparent 1px),
+    linear-gradient(90deg, #c689eb55 1px, transparent 1px);
+  background-size: 5% 5%;
+}
+#badgeGrid[aria-pressed="true"] {
+  background: #d8b4fe;
+  color: #251330;
+}
+#badgeInspectorTitle {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 16px;
+  font-size: 16px;
+  color: #e9d2f6;
+  border-bottom: 1px solid #50405c;
+}
+.badge-inspector > [role="tabpanel"] {
+  flex: 1;
+}
+.badge-name-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.badge-name-field input {
+  margin: 0 !important;
+  max-width: 400px;
+  min-height: 38px !important;
+}
+.property-reset {
+  min-width: 32px;
+  width: 32px;
+  min-height: 32px;
+  padding: 6px;
+  float: right;
+  margin-left: 6px;
+}
+.property-reset .icon {
+  width: 16px;
+  height: 16px;
+}
+.badge-position-pair label {
+  min-width: 0;
+}
+.badge-position-pair output {
+  clear: both;
+}
+.designer-templates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.designer-template {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 8px;
+  font-size: 12px;
+  text-align: center;
+}
+.designer-template-preview {
+  display: block;
+  width: 100%;
+  height: 110px;
+  margin-bottom: 6px;
+}
+.designer-template-preview svg {
+  width: 100%;
+  height: 100%;
+}
+.designer-layer {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  border-bottom: 1px solid #4d3e59;
+  padding: 9px 0;
+}
+.designer-layer .layer-select {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+  padding: 8px;
+}
+.designer-layer .layer-select span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.designer-layer .action-icon {
+  min-width: 32px;
+  width: 32px;
+  flex-basis: 32px;
+  padding: 6px;
+}
+@media (max-width: 1000px) {
+  .badge-editor-body {
+    grid-template-columns: 70px minmax(0, 1fr) minmax(270px, 310px);
+    gap: 10px;
+  }
+  .badge-preview-toolbar button {
+    font-size: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .badge-editor {
+    width: calc(100% - 16px);
+    padding: 12px;
+    height: 96dvh;
+    max-height: 96dvh;
+  }
+  .badge-editor-body {
+    grid-template-columns: 58px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    max-height: none;
+    overflow: auto;
+  }
+  .badge-toolrail {
+    grid-column: 1;
+    grid-row: 1/3;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding: 3px;
+  }
+  .badge-toolrail button {
+    font-size: 12px;
+    min-height: 62px;
+  }
+  .badge-preview-panel {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 340px;
+    padding: 8px;
+  }
+  .badge-inspector {
+    grid-column: 2;
+    grid-row: 2;
+    overflow: visible;
+  }
+  #badgePreview {
+    max-width: 100%;
+  }
+  .badge-editor .dialoghead h2 {
+    font-size: 18px;
+  }
+  .badge-editor .dialoghead .hint {
+    font-size: 12px;
+  }
+  .badge-preview-toolbar button {
+    font-size: 12px;
+    min-height: 38px;
+  }
+  .badge-name-field {
+    display: block;
+  }
+  .badge-name-field input {
+    width: 100%;
+    margin-top: 5px !important;
+  }
+  .badge-adjustment {
+    grid-template-columns: minmax(0, 1fr) 58px 16px;
+    gap: 5px;
+  }
+  .designer-templates {
+    grid-template-columns: 1fr;
+  }
+  .editing-properties {
+    gap: 8px;
+  }
+  .template-card-actions {
+    flex-wrap: wrap;
+  }
+}
+
+.badge-adjustment > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.badge-position-pair label {
+  position: relative;
+  padding-top: 2px;
+}
+.badge-position-pair .property-reset {
+  position: absolute;
+  right: 0;
+  top: -3px;
+  float: none;
+}
+.badge-position-pair output {
+  margin-top: 8px;
+}
+@media (max-width: 700px) {
+  .badge-editor-body {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+}
+
+.badge-name-field {
+  white-space: nowrap;
+}
+.canvas-item-actions .danger:hover,
+.template-card-actions .danger:hover {
+  color: #ffb3c4 !important;
+  background: #71314b !important;
+}
+
+.canvas-item-actions {
+  pointer-events: none;
+}
+.canvas-item-actions button {
+  pointer-events: auto;
+}

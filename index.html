@@ -190,8 +190,14 @@
       hidden
     >
       <div>
-        <strong id="editingTitle"></strong
-        ><span id="editingHint">การเปลี่ยนแปลงยังไม่ถูกบันทึกลงเทมเพลต</span>
+        <strong id="editingTitle"></strong>
+        <div class="editing-properties">
+          <label>ชื่อเทมเพลต<input id="editingName" maxlength="200" /></label
+          ><label>สีพื้น<input type="color" id="editingBackground" /></label
+          ><label>สีข้อความ<input type="color" id="editingText" /></label
+          ><label>เส้นตัด<input type="color" id="editingLine" /></label>
+        </div>
+        <span id="editingHint">การเปลี่ยนแปลงยังไม่ถูกบันทึกลงเทมเพลต</span>
       </div>
       <button id="saveTemplateEdits" type="button">บันทึกการแก้ไข</button
       ><button id="finishTemplateEdits" type="button">จบการแก้ไข</button>
@@ -813,35 +819,7 @@
                 aria-hidden="true"
               >
                 <path d="M4 3h16v11l-6 7H4z M14 21v-7h6" /></svg
-              ><span>สติกเกอร์</span></button
-            ><button id="duplicateSelected" type="button" title="Ctrl/Cmd+D">
-              <svg
-                class="icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M9 9h11v11H9z M5 15H3V3h12v2" /></svg
-              ><span>ทำสำเนา</span></button
-            ><button id="deleteSelected" type="button" title="Delete">
-              <svg
-                class="icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path
-                  d="M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7"
-                /></svg
-              ><span>ลบ</span>
+              ><span>สติกเกอร์</span>
             </button>
           </div>
           <p class="gesture-hint">
@@ -857,7 +835,12 @@
           <button type="button" id="fixSpacing">จัดเรียงใหม่</button>
         </div>
         <div id="status" role="status" aria-live="polite"></div>
-        <div class="canvas" id="canvas">
+        <div
+          class="canvas"
+          id="canvas"
+          tabindex="0"
+          aria-label="แคนวาสจัดวาง กด E เพื่อแก้ไขดีไซน์"
+        >
           <div id="sheetWrap"><div id="sheet"></div></div>
         </div>
         <div class="canvas-legend" aria-label="คำอธิบายเส้น">
@@ -866,8 +849,7 @@
           ><span><i class="legend-safe"></i>พื้นที่ปลอดภัย</span>
         </div>
         <footer>
-          <span id="count"></span
-          ><span>ขนาดบนจอขึ้นกับอุปกรณ์ • งานพิมพ์ใช้ 100%</span>
+          <span id="count" class="item-counter" role="status"></span>
         </footer>
       </section>
       <aside id="designSettings" aria-label="ออกแบบชิ้นที่เลือก">
@@ -886,9 +868,7 @@
           </svg>
           รูปและข้อความ
         </h2>
-        <button type="button" id="openBadgeEditor" class="wide">
-          เปิดตัวแก้ไขดีไซน์
-        </button>
+
         <p id="designSelection" class="design-selection"></p>
         <p class="hint">
           แก้ไขชิ้นที่เลือกบนกระดาษ หรือวางรูปลงบนชิ้นงานได้เลย
@@ -1383,6 +1363,15 @@
       <p class="hint">
         คีย์ลัดชิ้นงานจะไม่ทำงานขณะพิมพ์ข้อความหรือเปิดหน้าต่าง
         เพื่อให้แก้ไขข้อมูลได้ตามปกติ
+      </p>
+      <p class="icon-attribution">
+        ไอคอนตาราง:
+        <a
+          href="https://www.flaticon.com/uicons"
+          target="_blank"
+          rel="noopener noreferrer"
+          >UIcons โดย Flaticon</a
+        >
       </p>
     </dialog>
     <script type="module" src="/app.js"></script>

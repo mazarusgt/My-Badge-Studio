@@ -284,8 +284,7 @@ export function initEditorControls() {
     position = $("itemX").closest("details");
   const footer = document.createElement("div");
   footer.className = "panel-actions";
-  for (const id of ["openBadgeEditor", "applyAll", "bulk", "saveTemplate"])
-    footer.append($(id));
+  for (const id of ["applyAll", "bulk", "saveTemplate"]) footer.append($(id));
   const rightNodes = [...right.children].filter(
     (n) => n !== texts && n !== position && n.id !== "designSelection",
   );
