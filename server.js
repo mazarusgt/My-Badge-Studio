@@ -324,6 +324,8 @@ const server = http.createServer(async (req, res) => {
     const files = new Set([
       "index.html",
       "app.js",
+      "live-layout.js",
+      "sidebar-resets.js",
       "ui-icons.js",
       "canvas-actions.js",
       "batch.js",

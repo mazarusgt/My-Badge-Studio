@@ -264,7 +264,7 @@ try {
   );
   check(
     "grid captions use four Flaticon icons",
-    (await p.locator(".page-grid .property-caption svg").count()) === 4,
+    (await p.locator(".page-grid .property-caption > svg").count()) === 4,
   );
   await mkdir("test-results", { recursive: true });
   await p.locator("#library").click();

@@ -110,8 +110,8 @@ try {
   check("per-field cm conversion", (await page.inputValue("#face")) === "7.3");
   await reveal(page, "faceUnit");
   await page.selectOption("#faceUnit", "mm");
-  await reveal(page, "fillGrid");
-  await page.click("#fillGrid");
+  await reveal(page, "autoArrange");
+  await page.click("#autoArrange");
   await reveal(page, "addText");
   await page.click("#addText");
   await change("caption", "สวัสดี {{name}}");
@@ -177,8 +177,8 @@ try {
   await page.selectOption("#type", "square");
   await reveal(page, "preset");
   await page.selectOption("#preset", "50");
-  await reveal(page, "pack");
-  await page.click("#pack");
+  await reveal(page, "autoArrange");
+  await page.click("#autoArrange");
   check(
     "mixed sizes fit without changing 50 mm item",
     (await page.inputValue("#outer")) === "50",

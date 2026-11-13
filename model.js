@@ -164,6 +164,28 @@ export function packItems(page) {
 
   const p = page.paper,
     l = page.layout;
+  if (page.items.length && (l.cols || l.rows)) {
+    const size = Math.max(...page.items.map((a) => a.outer)),
+      count = page.items.length;
+    const byRows = l.rows > 0 && (l.axis === "rows" || !l.cols);
+    const cols = l.cols || Math.ceil(count / l.rows),
+      rows = l.rows || Math.ceil(count / l.cols);
+    if (cols * rows < count)
+      throw Error(
+        `ตาราง ${cols} คอลัมน์ × ${rows} แถวรองรับไม่ครบ ${count} ชิ้น`,
+      );
+    if (
+      cols * size + (cols - 1) * l.gapX > p.width - p.left - p.right + 1e-7 ||
+      rows * size + (rows - 1) * l.gapY > p.height - p.top - p.bottom + 1e-7
+    )
+      throw Error("ตารางและระยะห่างเกินพื้นที่พิมพ์");
+    const positions = page.items.map((_, i) => ({
+      x: p.left + (byRows ? Math.floor(i / rows) : i % cols) * (size + l.gapX),
+      y: p.top + (byRows ? i % rows : Math.floor(i / cols)) * (size + l.gapY),
+    }));
+    positions.forEach((pos, i) => Object.assign(page.items[i], pos));
+    return;
+  }
   let x = p.left,
     y = p.top,
     rowH = 0;

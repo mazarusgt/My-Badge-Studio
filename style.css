@@ -2236,3 +2236,52 @@ input[type="range"] {
 .canvas-item-actions button {
   pointer-events: auto;
 }
+.layout-feedback {
+  color: #d8c2e9;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 0 0;
+}
+.layout-feedback.invalid {
+  color: #ffc0d4;
+  background: #402333;
+  padding: 10px;
+  border-radius: 8px;
+}
+[aria-invalid="true"] {
+  border-color: #f392b3 !important;
+}
+.reset-caption {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+}
+.sidebar-reset {
+  min-width: 32px;
+  width: 32px;
+  min-height: 32px;
+  flex-basis: 32px;
+  padding: 6px;
+  background: transparent;
+  border-color: transparent;
+  opacity: 0.8;
+}
+.sidebar-reset .icon {
+  width: 16px;
+  height: 16px;
+}
+#itemSettings .check .reset-caption {
+  width: auto;
+  flex: 1;
+}
+@media (pointer: coarse) {
+  .sidebar-reset {
+    min-width: 44px;
+    width: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
+  }
+}

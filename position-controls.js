@@ -126,7 +126,7 @@ export function configurePageControls({ setUnit, onOrientation, onCenter }) {
   const grid = document.createElement("fieldset");
   grid.className = "page-grid";
   grid.innerHTML =
-    '<legend>แถว คอลัมน์ และระยะห่าง</legend><p class="hint">ใส่ 0 เพื่อคำนวณจำนวนอัตโนมัติ แล้วกดจัดเต็มหน้า</p><div class="pair"></div>';
+    '<legend>แถว คอลัมน์ และระยะห่าง</legend><p class="hint">เปลี่ยนค่าแล้วเห็นการจัดวางทันที • 0 = อัตโนมัติ • จำนวนชิ้นงานคงเดิม</p><div class="pair"></div>';
   for (const [id, name, graphic] of [
     ["cols", "คอลัมน์", "columns"],
     ["rows", "แถว", "rows"],

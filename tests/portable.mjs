@@ -59,8 +59,8 @@ try {
   await reveal(page, "preset");
   await page.selectOption("#preset", "73");
   await page.locator('.workspace-nav a[href="#paperSettings"]').click();
-  await reveal(page, "fillGrid");
-  await page.click("#fillGrid");
+  await reveal(page, "autoArrange");
+  await page.click("#autoArrange");
   await reveal(page, "addText");
   await page.click("#addText");
   await change("caption", "เปิดไฟล์เดียวได้");

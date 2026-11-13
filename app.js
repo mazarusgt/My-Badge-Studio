@@ -1,3 +1,5 @@
+import { createLiveLayout } from "./live-layout.js";
+import { initSidebarResets } from "./sidebar-resets.js";
 import { icon } from "./ui-icons.js";
 import {
   createCanvasActions,
@@ -63,6 +65,7 @@ let project = newProject(),
   layoutRecords = [];
 let selectedIds = new Set(),
   selectionPage = null;
+let liveLayout, sidebarResets;
 let templateManager,
   positionControls,
   pageControls,
@@ -440,6 +443,8 @@ function syncForm() {
   updatePresetButtons();
   syncEditorControls();
   positionControls?.sync();
+  sidebarResets?.sync();
+  liveLayout?.sync();
   pageControls?.sync(pg(), inputUnits.width || project.unit);
 }
 function zoom() {
@@ -482,7 +487,16 @@ function render() {
     warnings.filter((w) => !w.includes("ทับกัน")).join(" • "),
     !!warnings.length,
   );
-  const spacing = spacingReport(pg());
+  paintSpacingWarning(pg());
+  const applied = allDesignsApplied(pg());
+  $("applyAll").setAttribute("aria-pressed", String(applied));
+  $("applyAll").querySelector("span").textContent = applied
+    ? "ใช้ดีไซน์ร่วมกันทั้งหน้าแล้ว"
+    : "ใช้ดีไซน์กับทุกชิ้นในหน้านี้";
+  templateManager?.paintEditing();
+}
+function paintSpacingWarning(page) {
+  const spacing = spacingReport(page);
   $("spacingWarning").hidden = !spacing.crowded;
   $("canvas").classList.toggle("has-spacing-warning", spacing.crowded);
   $("spacingTitle").textContent = spacing.overlaps
@@ -497,12 +511,6 @@ function render() {
         ? `มี ${spacing.close} คู่ที่ห่างกันน้อยกว่า 0.8 mm • `
         : "พื้นที่ใช้งานเกิน 82% • ") +
     "ควรลบบางชิ้น เพิ่มระยะห่าง หรือปรับการจัดวางเพื่อให้ผลิตได้เรียบร้อย";
-  const applied = allDesignsApplied(pg());
-  $("applyAll").setAttribute("aria-pressed", String(applied));
-  $("applyAll").querySelector("span").textContent = applied
-    ? "ใช้ดีไซน์ร่วมกันทั้งหน้าแล้ว"
-    : "ใช้ดีไซน์กับทุกชิ้นในหน้านี้";
-  templateManager?.paintEditing();
 }
 function previewPosition(id, value) {
   if (!item()) return;
@@ -529,6 +537,58 @@ function needItem() {
     selected = pg().items.length - 1;
   }
   return item();
+}
+function resetSidebarSetting(id) {
+  const defaults = newProject(),
+    p = defaults.pages[0],
+    style = defaults.styles[$("styleTarget").value];
+  if (id === "face" || id === "outer") {
+    transaction(() => {
+      for (const target of editItems()) {
+        const face =
+          target.type === "round" ? 68 : target.type === "square" ? 50 : 40;
+        target.face = face;
+        target.outer = face + (target.type === "round" ? 10 : 0);
+      }
+    }, "คืนค่าขนาดเริ่มต้นตามประเภทชิ้นงานแล้ว");
+    return;
+  }
+  const values = {
+    type: "round",
+    preset:
+      item()?.type === "square"
+        ? "50"
+        : item()?.type === "sticker"
+          ? "40"
+          : "68",
+    safe: 3,
+    notes: "",
+    paper: "210,297",
+    ...p.paper,
+    ...p.layout,
+    pageUnit: "mm",
+    styleTarget: "cut",
+    lineColor: style.color,
+    lineWidth: style.width,
+    lineOpacity: style.opacity,
+    lineDash: style.dash,
+    markSize: style.size,
+    markOffset: style.offset,
+    linePreview: style.preview,
+    lineExport: style.export,
+    cropMarks: false,
+    registration: false,
+    layouts: "",
+    layoutTarget: "current",
+  };
+  if (!(id in values)) return;
+  const input = $(id);
+  if (input.type === "checkbox") input.checked = values[id];
+  else
+    input.value = input.hasAttribute("data-dim")
+      ? String(values[id] / units[inputUnits[id] || project.unit])
+      : String(values[id]);
+  input.dispatchEvent(new Event("change", { bubbles: true }));
 }
 for (const input of document.querySelectorAll("[data-dim]")) {
   inputUnits[input.id] = "mm";
@@ -574,7 +634,7 @@ bindDim(
   ["width", "height", "top", "right", "bottom", "left"],
   () => pg().paper,
 );
-bindDim(["gapX", "gapY"], () => pg().layout);
+
 on("unit", "change", () => {
   project.unit = $("unit").value;
   for (const k of Object.keys(inputUnits)) inputUnits[k] = project.unit;
@@ -591,12 +651,6 @@ on("notes", "change", () =>
     setBatchProperty(editItems(), "notes", $("notes").value);
   }),
 );
-for (const k of ["cols", "rows"])
-  on(k, "change", () =>
-    transaction(() => {
-      pg().layout[k] = Number($(k).value);
-    }),
-  );
 on("type", "change", () => convertSelection($("type").value));
 on("preset", "change", () => {
   if ($("preset").value === "custom") return;
@@ -624,21 +678,6 @@ on("rotate", "click", () =>
     [p.width, p.height] = [p.height, p.width];
   }),
 );
-on("fillGrid", "click", () => {
-  if (
-    pg().items.length &&
-    !confirm(
-      "จัดเต็มหน้าใหม่โดยใช้ดีไซน์ชิ้นที่เลือกแทนงานเดิมในหน้านี้? ย้อนกลับได้",
-    )
-  )
-    return;
-  transaction(() => {
-    pg().items = gridItems(pg(), item() || newItem());
-    selected = 0;
-    selectionPage = null;
-  }, "จัดเต็มหน้าแล้ว");
-});
-on("pack", "click", () => transaction(() => packItems(pg())));
 on("addItem", "click", () =>
   transaction(() => {
     const a = clone(item() || newItem());
@@ -672,14 +711,10 @@ for (const button of document.querySelectorAll("[data-layout-mode]"))
   button.addEventListener("click", () =>
     transaction(() => {
       pg().layout.mode = button.dataset.layoutMode;
-    }, "เลือกรูปแบบแล้ว • กดจัดเรียงอัตโนมัติเพื่อนำไปใช้"),
+      packItems(pg());
+    }, "ปรับรูปแบบและจัดเรียงชิ้นงานแล้ว"),
   );
-on("autoArrange", "click", () =>
-  transaction(
-    () => packItems(pg()),
-    "จัดเรียงชิ้นงานทั้งหมดแล้ว • คงขนาดและดีไซน์เดิม",
-  ),
-);
+on("autoArrange", "click", () => liveLayout.arrange());
 on("itemX", "change", () =>
   transaction(() => {
     const dx = dimRead("itemX") - needItem().x;
@@ -1749,6 +1784,28 @@ pageControls = configurePageControls({
       }
     }, "จัดชิ้นงานให้อยู่กลางหน้าแล้ว"),
 });
+liveLayout = createLiveLayout({
+  notify: () => status("จัดเรียงชิ้นงานทั้งหมดแล้ว • คงขนาดและดีไซน์เดิม"),
+  getPage: pg,
+  readGap: dimRead,
+  preview: (page) => {
+    paintSpacingWarning(page);
+    $("sheet").innerHTML = renderPage(project, page, {
+      selected,
+      selectedIds: [...selectedIds],
+    });
+    zoom();
+  },
+  commit: (page) =>
+    transaction(() => {
+      pg().layout = clone(page.layout);
+      const positions = new Map(
+        page.items.map((a) => [a.id, { x: a.x, y: a.y }]),
+      );
+      for (const a of pg().items) Object.assign(a, positions.get(a.id));
+    }, "จัดเรียงชิ้นงานทั้งหมดแล้ว • คงขนาดและดีไซน์เดิม"),
+});
+sidebarResets = initSidebarResets({ reset: resetSidebarSetting });
 badgeEditor = createBadgeEditor({
   getProject: () => project,
   getItem: item,

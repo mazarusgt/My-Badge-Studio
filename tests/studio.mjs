@@ -101,7 +101,8 @@ try {
   );
   await change("gapX", 2);
   await change("gapY", 2);
-  await p.locator("#fixSpacing").click();
+  await reveal(p, "autoArrange");
+  await p.locator("#autoArrange").click();
   check(
     "adjusting spacing clears advisory",
     !(await p.locator("#spacingWarning").isVisible()),

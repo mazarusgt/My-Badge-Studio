@@ -15,7 +15,8 @@
     "test:canvas": "node tests/canvas.mjs",
     "test:editor": "node tests/editor-browser.mjs",
     "test:studio": "node tests/studio.mjs",
-    "test:interactions": "node tests/interactions.mjs"
+    "test:interactions": "node tests/interactions.mjs",
+    "test:layout": "node tests/live-layout.mjs"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",
