@@ -68,6 +68,16 @@ html = html.replace(
 );
 if (html.includes('src="/app.js"') || html.includes('href="/style.css"'))
   throw Error("Portable build has external app references");
+if (process.argv.includes("--check")) {
+  const current = await fs.readFile(
+    path.join(root, "portable/My-Badge-Studio.html"),
+    "utf8",
+  );
+  if (current !== html)
+    throw Error("Portable HTML is outdated. Run npm run build:portable.");
+  console.log("Portable HTML matches current source and fonts.");
+  process.exit(0);
+}
 await fs.mkdir(path.join(root, "portable"), { recursive: true });
 await fs.writeFile(path.join(root, "portable/My-Badge-Studio.html"), html);
 console.log(

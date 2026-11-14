@@ -8,15 +8,19 @@
     "start": "node server.js",
     "test": "node --test --test-isolation=none tests/*.test.js",
     "test:e2e": "node tests/browser.mjs",
-    "format": "prettier --write \"*.{js,html,css,json}\" \"tests/*.{js,mjs}\" \"docs/*.md\" README.md \"scripts/*.mjs\"",
-    "format:check": "prettier --check \"*.{js,html,css,json}\" \"tests/*.{js,mjs}\" \"docs/*.md\" README.md \"scripts/*.mjs\"",
+    "format": "prettier --write \"*.{js,html,css,json}\" \"tests/*.{js,mjs}\" \"docs/*.md\" README.md file_README.md \"docs/screenshots/*.json\" \"scripts/*.mjs\"",
+    "format:check": "prettier --check \"*.{js,html,css,json}\" \"tests/*.{js,mjs}\" \"docs/*.md\" README.md file_README.md \"docs/screenshots/*.json\" \"scripts/*.mjs\"",
     "build:portable": "node scripts/build-portable.mjs",
     "test:portable": "node tests/portable.mjs",
     "test:canvas": "node tests/canvas.mjs",
     "test:editor": "node tests/editor-browser.mjs",
     "test:studio": "node tests/studio.mjs",
     "test:interactions": "node tests/interactions.mjs",
-    "test:layout": "node tests/live-layout.mjs"
+    "test:layout": "node tests/live-layout.mjs",
+    "docs:screenshots": "node scripts/capture-docs.mjs",
+    "check:portable": "node scripts/build-portable.mjs --check",
+    "verify:release": "npm run check:portable && node scripts/verify-release.mjs",
+    "test:all": "npm test && npm run test:e2e && npm run test:canvas && npm run test:editor && npm run test:studio && npm run test:interactions && npm run test:layout && npm run test:portable"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",

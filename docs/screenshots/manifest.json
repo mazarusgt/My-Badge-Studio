@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "captured_at": "2026-11-14T09:43:06.574Z",
+  "source_commit": "2af70b6368ec75452ed31ab8057ba7fbe1aff28c",
+  "browser": "154.0.8037.57",
+  "generator": "npm run docs:screenshots",
+  "fixture": "โปรเจกต์ตัวอย่าง 6 ชิ้น ไม่ใช้ข้อมูลผู้ใช้",
+  "source_hashes": {
+    "app.js": "27d7d4c4b212ce59e9500d00d515737e5a8e8a80c8dfeb58c3b6c99cb2d17efa",
+    "assets/fonts/hand.ttf": "a13ebdee881ce1dcc84067c266345c86d2ace50cb599d2df02a1aa835552c1aa",
+    "assets/fonts/latin.ttf": "89c3c497f618fdaa0b2d1e98fef93582f28c71debd2c4a8cdf41f190ced2909d",
+    "assets/fonts/sans.ttf": "dfbd5ed0f1e68c3cbc51aa08f646d1ab0e68e7c4ceab70a69e465225ff701f93",
+    "assets/fonts/serif.ttf": "8e1bcaa4fef346b247092cf4327c4744eda2fa72afed96e2145dc30a3b04fdd1",
+    "badge-editor.js": "f6484fc2167580c3092348be965fa9279912cd6f79e0c069665255c5d45b39d6",
+    "batch.js": "25e5ac516d1504b840a6914bb6dc6c3b5c6f4ad7f8260b1f203feb48f9382e1d",
+    "canvas-actions.js": "23743bedacf9066d99ed391b44d8e57ac564f99b6236c5a57267c45126a74b91",
+    "editor-controls.js": "07cfc35a9b79e917b79fae05405134983a5684cf5a6726b4e93ab3d31204747c",
+    "exports.js": "5eca0ec624672017a79e9b4ee1e5882f797d5b803a12cc37af34c388e9a18633",
+    "geometry.js": "7332164696fc4d7eb2d2df8bc711b0a08b528102177698194a4a7979da3870f9",
+    "index.html": "b2682be11ae7c118a6ff6110123f2fa1cb8f7d4ab53a7fb690156b76ee365e75",
+    "live-layout.js": "6251f88c776162b0d582c78c99186843881f2d7c9d01425a6fee7ab21b81d503",
+    "model.js": "9827a0271f081fc46c16fa749e8a157472a1dcee94193a4e8502e6fe5664217d",
+    "package.json": "545a69cf18ef5581e2b42930f200114d4e18cb5960289ed7f45ba3885a19a451",
+    "position-controls.js": "b88bc7afd207261c645cf2c2798bfd87feaa374ff8689a40c5425ae3e02ced77",
+    "render.js": "dbb9025edcbee7c322ed96400ebd2fc4ca83e0d7e5b7b776d7ab439ae034224a",
+    "scripts/capture-docs.mjs": "0a5d8581382039a503d163582956f96163d0e1af8bbb9403cbb769b269346932",
+    "server.js": "e16ef50f6ad3be23756f756e3a4788cf17861a60ec26b4a4943d2feb92e3a06a",
+    "sidebar-resets.js": "19f0f83a4a569a9bab9d510c1d809f67f7770187a45f932bb5468f2dbf3415bd",
+    "storage.js": "519ac9e1dc3b0972b0f76da14a10697b7f901ee6cc3637549efdd31db5988a36",
+    "style.css": "88c96f5e58e8d421fa043aed8b1875ac7ae12ae596d47317e18ed373bffab5f1",
+    "template-manager.js": "a723a13b928af7f8621ff593bda98b2495a2c8472058972fc8b4123d5c44631a",
+    "ui-icons.js": "27c9e7ed4eacd30d44a7b4e9936e35b90f82c31bf39d4e5dbe153ee810bf3324",
+    "workspace-state.js": "4ee395e59e1d9bdae0f4ed65a78a2762d03df08417691e7c940f61c9220bf99f"
+  },
+  "images": [
+    {
+      "file": "desktop.png",
+      "label": "แคนวาสจัดหน้า: รีเซ็ตและการจัดวางทันที",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "full_page": false,
+      "width": 1440,
+      "height": 1000,
+      "sha256": "41b1bb52b9b6be650c374765302d6e39c8fa53a79e7585d9fbf0954c727aae36"
+    },
+    {
+      "file": "designer-desktop.png",
+      "label": "ตัวแก้ไขดีไซน์: แถบเครื่องมือ เลเยอร์ และกริด",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "full_page": false,
+      "width": 1440,
+      "height": 1000,
+      "sha256": "daf19389c1a70bdc28eabbb85b42b672ad824ce6f8dc7d6dba4b6a140bfeff82"
+    },
+    {
+      "file": "designer-mobile.png",
+      "label": "ตัวแก้ไขดีไซน์บนมือถือ",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "full_page": false,
+      "width": 390,
+      "height": 844,
+      "sha256": "0873487e1683d742cc7386c92f12da377d49202b7d8c0ddbf63a77e81bafa7cb"
+    },
+    {
+      "file": "mobile.png",
+      "label": "จัดหน้าบนมือถือ พร้อมหน่วยและตัวนับชิ้นงาน",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "full_page": true,
+      "width": 390,
+      "height": 2650,
+      "sha256": "eb8f9e96bc8f21e9bc838bae851b3ed4752199bed3739a9e8566a183823576e8"
+    },
+    {
+      "file": "gallery.png",
+      "label": "คลังเทมเพลต: ปุ่มเพิ่มและไอคอนแก้ไข/ลบ",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "full_page": false,
+      "width": 1440,
+      "height": 1000,
+      "sha256": "8c34cba3de011e3ee3d5e7fbbfe2c5d76bf65ef75c2376f47350de22a7046e89"
+    }
+  ]
+}
